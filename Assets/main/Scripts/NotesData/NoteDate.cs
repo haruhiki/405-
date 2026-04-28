@@ -14,8 +14,8 @@ public class NoteDate
     [System.Serializable]
     public struct Notes
     {
-        float targetTime;
-        int lane;
-        NotesType noteType;
+        public float targetTime;
+        public int lane;
+        public NotesType noteType;
     }
 }

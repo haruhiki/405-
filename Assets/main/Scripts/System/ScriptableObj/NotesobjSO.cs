@@ -9,5 +9,5 @@ public class NotesobjSO : ScriptableObject
     [SerializeField] public float  offset = 4;
     [SerializeField] public int division = 0;
 
-    public List<NoteDate> notes;
+    public List<NoteDate.Notes> notes;
 }
