@@ -18,11 +18,17 @@ public class CSVLoader : MonoBehaviour
 
 
 
+
         }
 
 
 
         return notes;
+    }
+
+    public float CalculateSecondsPerRow(NotesobjSO data)
+    {
+        return 60f / (data.bpm * data.division);
     }
 
 

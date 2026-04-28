@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class NoteDate : MonoBehaviour
+public class NoteDate
 {
     /// <summary> /// ノーツの種類 /// </summary>
     public enum NotesType
@@ -11,7 +11,8 @@ public class NoteDate : MonoBehaviour
     }
 
     /// <summary> /// ノーツ構造体 /// </summary>
-    struct Notes
+    [System.Serializable]
+    public struct Notes
     {
         float targetTime;
         int lane;
