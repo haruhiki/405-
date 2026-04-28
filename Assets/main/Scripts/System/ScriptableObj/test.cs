@@ -25,13 +25,10 @@ public class test : MonoBehaviour
 
         // 3. コンソールに出力（確認用）
         Debug.Log($"<color=green>【読み込みテスト完了】</color> 合計ノーツ数: {result.Count}");
-
-        // 最初の5件だけ中身を表示して計算が合っているか確認
-        int displayCount = Mathf.Min(result.Count, 5);
-        for (int i = 0; i < displayCount; i++)
+        foreach (var note in targetSO.notes)
         {
-            var n = result[i];
-            Debug.Log($"Index[{i}] Time: {n.targetTime:F3}s | Lane: {n.lane} | Type: {n.noteType}");
+            // 全てのノーツの種類と時間を表示
+            Debug.Log($"Time: {note.targetTime:F3} | Lane: {note.lane} | Type: {note.noteType}");
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,26 +8,27 @@ public class CSVLoader : MonoBehaviour
     public List<NoteDate.Notes> LoadChart(TextAsset file, float bpm, float offset)
     {
         List<NoteDate.Notes> notes = new List<NoteDate.Notes>();
-        string[] lines = file.text.Split('\n');
+        string[] lines = file.text.Split(new[] { '\n', '\r' },
+            System.StringSplitOptions.RemoveEmptyEntries);
 
-        //一行当たりの秒数
         float secondsPerRow = 60f / (bpm * notesSO.division);
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 1; i < lines.Length; i++)
         {
-            if (string.IsNullOrEmpty(lines[i])) { continue; }
             string[] columns = lines[i].Split(',');
-            // レーンをループ（0:左レーン, 1:右レーン）
-            // スプレッドシートのB列が index[1], C列が index[2] なので、j + 1 する
+
             for (int j = 0; j <= 1; j++)
             {
-                // インデックス外エラー防止
-                if (columns.Length <= j + 1) { continue; }
-                string cellValue = columns[j + 1].Trim();
+                int colIndex = j + 2;
+
+                if (columns.Length <= colIndex) { continue; }
+
+                string cellValue = columns[colIndex].Trim();
+
                 if (!string.IsNullOrEmpty(cellValue))
                 {
                     NoteDate.Notes nots = new NoteDate.Notes();
-                    nots.targetTime = offset + (i * secondsPerRow);
-                    nots.lane = i;
+                    nots.targetTime = offset + ((i - 1) * secondsPerRow);
+                    nots.lane = j;
                     nots.noteType = ParseType(cellValue);
                     notes.Add(nots);
                 }
@@ -37,10 +39,11 @@ public class CSVLoader : MonoBehaviour
 
     private NoteDate.NotesType ParseType(string value)
     {
-        if (value.Contains("1")) return NoteDate.NotesType.Short;
-        if (value.Contains("2")) return NoteDate.NotesType.Long;
-        if (value.Contains("3")) return NoteDate.NotesType.Rush;
-        return NoteDate.NotesType.Short; // デフォルト
+        if (value.Contains("1") || value.Contains("１")) return NoteDate.NotesType.Short;
+        if (value.Contains("2") || value.Contains("２")) return NoteDate.NotesType.Long;
+        if (value.Contains("3") || value.Contains("３")) return NoteDate.NotesType.Rush;
+
+        return NoteDate.NotesType.Short;
     }
 
     public float CalculateSecondsPerRow(NotesobjSO data)
