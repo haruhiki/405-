@@ -16,6 +16,7 @@ public class NoteDate
     {
         public float targetTime;
         public int lane;
+        public Vector3 targetPosition;
         public NotesType noteType;
     }
 }

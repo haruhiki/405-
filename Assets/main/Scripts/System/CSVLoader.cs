@@ -8,36 +8,39 @@ public class CSVLoader : MonoBehaviour
     public List<NoteDate.Notes> LoadChart(TextAsset file, float bpm, float offset)
     {
         List<NoteDate.Notes> notes = new List<NoteDate.Notes>();
-
-        //ガード：BPMやDivisionが0だと計算できないのでデフォルト値を設定
         if (bpm <= 0) bpm = 120f;
-        if (notesSO.division <= 0) notesSO.division = 4; 
+        if (notesSO.division <= 0) notesSO.division = 4;
 
-        //1行あたりの秒数計算
         float secondsPerRow = 60f / (bpm * notesSO.division);
-
-        string[] lines = file.text.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
+        string[] lines = file.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
         for (int i = 1; i < lines.Length; i++)
         {
             string[] columns = lines[i].Split(',');
 
+            // columns[2]がB列(左)、columns[3]がC列(右)
             for (int j = 0; j <= 1; j++)
             {
-                int colIndex = j + 2;
-                if (columns.Length <= colIndex) { continue; }
+                int colIndex = j + 2; // 2 または 3
+                if (columns.Length <= colIndex) continue;
 
                 string cellValue = columns[colIndex].Trim();
 
-                // 数値（1, 2, 3）が入っているときだけ処理
-                if (!string.IsNullOrEmpty(cellValue) && cellValue != "0")
+                if (string.IsNullOrEmpty(cellValue) || cellValue == "0") continue;
+                if (int.TryParse(cellValue, out int noteTypeInt))
                 {
                     NoteDate.Notes nots = new NoteDate.Notes();
-
-                    // 計算結果を代入
                     nots.targetTime = offset + ((i - 1) * secondsPerRow);
-                    nots.lane = j;
                     nots.noteType = ParseType(cellValue);
+                    nots.lane = j; 
+                    if (j == 0) //左レーン
+                    {
+                        nots.targetPosition = new Vector3(-3f, -1f, 0);
+                    }
+                    else //右レーン
+                    {
+                        nots.targetPosition = new Vector3(3f, -1f, 0);
+                    }
 
                     notes.Add(nots);
                 }
