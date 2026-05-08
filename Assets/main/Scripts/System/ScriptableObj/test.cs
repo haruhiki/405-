@@ -37,4 +37,9 @@ public class test : MonoBehaviour
     {
         RunTest();
     }
+
+    private void Update()
+    {
+         
+    }
 }

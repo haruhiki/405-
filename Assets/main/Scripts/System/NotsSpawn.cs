@@ -42,7 +42,23 @@ public class NotsSpawn : MonoBehaviour
 
     void Update()
     {
-        if (notsSO == null || notsSO.notes.Count == 0 || !audioSource.isPlaying) return;
+        //テスト用
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            if (audioSource.clip != null)
+            {
+                spawnIndex = 0; // インデックスをリセット
+                audioSource.Play();
+                Debug.Log($"再生開始: {audioSource.clip.name} / 全長: {audioSource.clip.length}秒");
+            }
+            else
+            {
+                Debug.LogError("AudioSourceにClip（曲）がセットされていません！");
+            }
+        }
+
+        //再背中のみノーツ生成を行う-> それ以外はretrun 
+        if (!audioSource.isPlaying) return;
 
         float currentTime = audioSource.time;
 
