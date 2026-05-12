@@ -3,53 +3,40 @@ using UnityEngine;
 public class NotesCon : MonoBehaviour
 {
     private NoteDate.Notes myData;
-    private float speed;
-    private float spawnOffset;
+    private float moveDuration;
+    private float startTime;
+    private Vector3 spawnPos;
     private bool isInitialized = false;
 
-    private Vector3 spawnPos;   //生成時の位置
-    private float spawnTime;    //生成されるべきだった時間
+    private AudioSource audioSource;
+    private Vector3 targetWorldPos; 
 
-    public void Init(NoteDate.Notes data, float moveSpeed, float offset)
+    public void Init(NoteDate.Notes data, float duration, Vector3 realTarget)
     {
         myData = data;
-        speed = moveSpeed;
-        spawnOffset = offset;
-
-        //生成時の座標と時間を記録
+        moveDuration = duration;
+        targetWorldPos = realTarget; //本物の円の座標を保存
+        audioSource = FindFirstObjectByType<AudioSource>();
         spawnPos = transform.position;
-        spawnTime = myData.targetTime - spawnOffset;
-
+        startTime = myData.targetTime - moveDuration;
         isInitialized = true;
     }
 
     void Update()
     {
-        if (!isInitialized) return;
-        float songTime = FindFirstObjectByType<AudioSource>().time;
-        float progress = (songTime - spawnTime) / spawnOffset;
-        transform.position = Vector3.Lerp(spawnPos, myData.targetPosition, progress);
-        if (songTime > myData.targetTime + 0.5f)
-        {
-            OnMiss();
-        }
+        if (!isInitialized || audioSource == null) return;
+
+        float progress = (audioSource.time - startTime) / moveDuration;
+
+        //targetWorldPos（本物の円）に向かうので、見た目と判定が一致する
+        transform.position = Vector3.LerpUnclamped(spawnPos, targetWorldPos, progress);
+
+        //判定ラインを過ぎて 0.5秒後に消える（突き抜け演出）
+        if (audioSource.time > myData.targetTime + 0.5f) { Destroy(gameObject); }
     }
 
-    public Vector3 GetTargetPosition() => myData.targetPosition;
     public float GetTargetTime() => myData.targetTime;
-
-    public void OnHit()
-    {
-        //TODO:エフェクト生成
-        Destroy(gameObject);
-    }
-
-    //miss時の処理
-    private void OnMiss()
-    {
-        Debug.Log("Miss...");
-        Destroy(gameObject);
-    }
-
-
+    public int GetLane() => myData.lane;
+    public void OnHit() => Destroy(gameObject);
+    public void OnMiss() { Debug.Log("Miss!"); Destroy(gameObject); }
 }

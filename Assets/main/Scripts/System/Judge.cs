@@ -2,77 +2,75 @@ using UnityEngine;
 
 public class Judge : MonoBehaviour
 {
-    [SerializeField] public float perfectRad = 0.5f;
-    [SerializeField] public float greatRad = 1.0f;
-    [SerializeField] public Define _defineSO;
+    [Header("設定")]
+    [SerializeField] private int myLane; // 0:左, 1:右
+    [SerializeField] private float judgeRadius = 1.5f; // 判定が有効な円の半径
+    [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
+    [SerializeField] private float greatWindow = 0.12f;  // 可の許容時間差
 
+    [Header("参照")]
+    [SerializeField] private Define _defineSO;
     private AudioSource audioSource;
 
-    void Start()
-    {
-        audioSource = FindFirstObjectByType<AudioSource>();
-    }
+    void Start() => audioSource = FindFirstObjectByType<AudioSource>();
 
     void Update()
-    { 
+    {
         if (_defineSO == null || !_defineSO.isInputDetected) return;
 
         //座標変換
-        float zDepth = Mathf.Abs(Camera.main.transform.position.z);
-        Vector3 screenPos = new Vector3(_defineSO.inputScreenPos.x, _defineSO.inputScreenPos.y, zDepth);
-        Vector3 touchWorldPos = Camera.main.ScreenToWorldPoint(screenPos);
+        float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
+        Vector3 screenPosWithDepth = new Vector3(_defineSO.inputScreenPos.x, _defineSO.inputScreenPos.y, camToPlaneDist);
+        Vector3 touchWorldPos = Camera.main.ScreenToWorldPoint(screenPosWithDepth);
         touchWorldPos.z = 0;
 
-        //判定対象のノーツを探す
-        NotesCon targetNote = GetActiveNote();
+        //距離判定
+        float distance = Vector2.Distance(touchWorldPos, transform.position);
+        if (distance > judgeRadius) return;
 
-        if (targetNote != null)
+        //このレーンのノーツを取得
+        NotesCon targetNote = GetNearestNote();
+        if (targetNote == null) return;
+
+        //時間差（タイミング）の計算
+        float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
+
+        //判定
+        if (timeDiff <= perfectWindow)
         {
-            //距離と時間の差を算出
-            float distance = Vector2.Distance(touchWorldPos, targetNote.GetTargetPosition());
-            float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
-
-            //判定ロジック
-            //時間が 0.2秒以上ズレていたら「空振り」として無視、またはMiss
-            if (timeDiff > 0.2f) return;
-
-            if (distance <= perfectRad)
-            {
-                Debug.Log("<color=orange>良判定！</color>");
-                targetNote.OnHit();
-            }
-            else if (distance <= greatRad)
-            {
-                Debug.Log("<color=yellow>可判定！</color>");
-                targetNote.OnHit(); 
-            }
-            else
-            {
-                Debug.Log("<color=red>不可（場所が違う）</color>");
-                //場所が違う場合,消すかどうか
-                targetNote.OnHit();
-            }
+            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{timeDiff:F3} 距離:{distance:F2}");
+            targetNote.OnHit();
+        }
+        else if (timeDiff <= greatWindow)
+        {
+            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{timeDiff:F3}");
+            targetNote.OnHit();
+        }
+        else
+        {
+            //デバッグ用：タイミングが早すぎる・遅すぎる場合
+            Debug.Log($"範囲外 誤差:{timeDiff:F3}");
+            //仮でMiss時にオブジェクト削除
+            targetNote.OnMiss();
         }
     }
 
-    NotesCon GetActiveNote()
+    NotesCon GetNearestNote()
     {
-        NotesCon[] allNotes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
-        NotesCon nearest = null;
-        float minTimeDiff = float.MaxValue;
-        float songTime = audioSource.time;
+        NotesCon[] notes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
+        NotesCon best = null;
+        float minDiff = 0.5f; // 0.5秒以上離れているものは対象外
 
-        foreach (var note in allNotes)
+        foreach (var n in notes)
         {
-            float diff = Mathf.Abs(note.GetTargetTime() - songTime);
-            //判定有効幅（前後0.2秒など）
-            if (diff < minTimeDiff && diff < 0.2f)
+            if (n.GetLane() != myLane) continue;
+            float diff = Mathf.Abs(n.GetTargetTime() - audioSource.time);
+            if (diff < minDiff)
             {
-                minTimeDiff = diff;
-                nearest = note;
+                minDiff = diff;
+                best = n;
             }
         }
-        return nearest;
+        return best;
     }
-
 }

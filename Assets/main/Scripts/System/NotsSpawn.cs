@@ -17,6 +17,10 @@ public class NotsSpawn : MonoBehaviour
     [Header("生成ポイント")]
     public Transform[] spawnPoints;
 
+    [Header("判定円の参照")]
+    public Transform leftTargetCircle;  
+    public Transform rightTargetCircle; 
+
     private int spawnIndex = 0;
 
     void Start()
@@ -82,22 +86,21 @@ public class NotsSpawn : MonoBehaviour
         }
     }
     //ノーツ本体生成
-    void Spawn(NoteDate.Notes noteDate) 
+    void Spawn(NoteDate.Notes noteDate)
     {
+        GameObject prefab = (noteDate.noteType == NoteDate.NotesType.Long) ? LongNotes :
+                         (noteDate.noteType == NoteDate.NotesType.Rush) ? RushNotes : shortNotes;
 
-        GameObject prefab = shortNotes;
-        if (noteDate.noteType == NoteDate.NotesType.Long) prefab = LongNotes;
-        if (noteDate.noteType == NoteDate.NotesType.Rush) prefab = RushNotes;
-
-        //生成
         GameObject noteObj = Instantiate(prefab, spawnPoints[noteDate.lane].position, Quaternion.identity);
-
-        //プレハブ選択
         NotesCon controller = noteObj.GetComponent<NotesCon>();
         if (controller != null)
         {
-            controller.Init(noteDate, notesSpeed, preSpawnTime);
-        }
+            // CSV上の座標(noteDate.targetPosition)ではなく、
+            // シーン上の実際の円(leftTargetCircleなど)の座標を目的地として渡す
+            Vector3 finalDestination = (noteDate.lane == 0) ? leftTargetCircle.position : rightTargetCircle.position;
 
+            // NotesConのInitに目的地を引数として追加するか、内部で代入する
+            controller.Init(noteDate, preSpawnTime, finalDestination);
+        }
     }
 }
