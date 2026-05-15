@@ -4,19 +4,21 @@ public class Judge : MonoBehaviour
 {
     [Header("設定")]
     [SerializeField] private int myLane; // 0:左, 1:右
-    [SerializeField] private float judgeRadius = 1.5f; // 判定が有効な円の半径
+    [SerializeField] private float judgeRadius = 1.5f;    // 判定が有効な円の半径
     [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
-    [SerializeField] private float greatWindow = 0.12f;  // 可の許容時間差
+    [SerializeField] private float greatWindow = 0.12f;   // 可の許容時間差
 
     [Header("参照")]
     [SerializeField] private Define _defineSO;
     private AudioSource audioSource;
 
+    private bool isLongPress = false;
+
     void Start() => audioSource = FindFirstObjectByType<AudioSource>();
 
     void Update()
     {
-        if (_defineSO == null || !_defineSO.isInputDetected) return;
+        if (_defineSO == null || !_defineSO.isInputDetected) { return; }
 
         //座標変換
         float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
@@ -26,14 +28,30 @@ public class Judge : MonoBehaviour
 
         //距離判定
         float distance = Vector2.Distance(touchWorldPos, transform.position);
-        if (distance > judgeRadius) return;
+        if (distance > judgeRadius) { return; }
 
         //このレーンのノーツを取得
         NotesCon targetNote = GetNearestNote();
-        if (targetNote == null) return;
+        if (targetNote == null) {return; }
 
         //時間差（タイミング）の計算
         float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
+
+        //ノーツの判定
+        switch (targetNote.GetNoteType())
+        {
+            case NoteDate.NotesType.Short:
+                if (_defineSO.isInputDetected) ProcessShortHit(targetNote);
+                break;
+
+            case NoteDate.NotesType.Long:
+                ProcessLongHit(targetNote);
+                break;
+
+            case NoteDate.NotesType.Rush:
+                ProcessRushHit(targetNote);
+                break;
+        }
 
         //判定
         if (timeDiff <= perfectWindow)
@@ -55,6 +73,8 @@ public class Judge : MonoBehaviour
         }
     }
 
+    /// <summary> /// 近くのノーツを取得 /// </summary>
+    /// <returns></returns>
     NotesCon GetNearestNote()
     {
         NotesCon[] notes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
@@ -72,5 +92,49 @@ public class Judge : MonoBehaviour
             }
         }
         return best;
+    }
+
+    /// <summary> /// 短押し /// </summary>
+    /// <param name="note"> ノーツタイプがshort</param>
+    void ProcessShortHit(NotesCon note)
+    {
+        float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+        if (diff <= greatWindow) note.OnHit(); // 成功なら消す
+    }
+
+    /// <summary> /// 長押し /// </summary>
+    /// <param name="note"> noteTypeがLongの場合 </param>
+    void ProcessLongHit(NotesCon note)
+    {
+        float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+
+        //押し始め
+        if (_defineSO.isInputDetected && diff <= greatWindow)
+        {
+            isLongPress = true;
+            Debug.Log("Long Start!");
+            //TODO:ノーツの見た目を「押下中」に変えるなどの処理
+        }
+
+        //離した時
+        if (_defineSO.isInputRush)
+        {
+            if (isLongPress)
+            {
+                Debug.Log("Long Success!");
+                note.OnHit(); //ノーツ削除
+            }
+            isLongPress = false;
+        }
+    }
+
+    /// <summary> /// ラッシュ /// </summary>
+    /// <param name="note"> noteTypeがラッシュの際のみ　</param>
+    void ProcessRushHit(NotesCon note)
+    {
+        if (_defineSO.isInputDetected)
+        {
+            Debug.Log("Rush Tap!");
+        }
     }
 }

@@ -39,4 +39,8 @@ public class NotesCon : MonoBehaviour
     public int GetLane() => myData.lane;
     public void OnHit() => Destroy(gameObject);
     public void OnMiss() { Debug.Log("Miss!"); Destroy(gameObject); }
+
+    public NoteDate.NotesType GetNoteType() => myData.noteType;
+
+
 }

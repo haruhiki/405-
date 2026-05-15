@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 public class InputHandller : MonoBehaviour
 {
@@ -13,46 +14,31 @@ public class InputHandller : MonoBehaviour
     {
         //毎フレームリセット
         _defineSO.isInputDetected = false;
+        _defineSO.isInputHold = false;
+        _defineSO.isInputRush = false;
 
-        //スマホタッチ
-        if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
-        {
-            var touch = Touchscreen.current.touches[0];
-            if (touch.press.wasPressedThisFrame)
-            {
-                _defineSO.SetInput(touch.position.ReadValue());
-            }
-        }
+        ////スマホタッチ
+        //if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
+        //{
+        //    var touch = Touchscreen.current.touches[0];
+        //    if (touch.press.wasPressedThisFrame)
+        //    {
+        //        _defineSO.SetInput(touch.position.ReadValue());
+        //    }
+        //}
 
-        //キーボード
-        // キーボード入力部分
-        if (Keyboard.current.fKey.wasPressedThisFrame)
-        {
-            //座標を送るのではなく、「左レーンが叩かれた」という事実を優先するために
-            //判定円の「スクリーン座標」を逆算して送る
-            Vector2 screenPos = Camera.main.WorldToScreenPoint(leftTargetCircle.position);
-            _defineSO.SetInput(screenPos);
-
-        }
-        else if (Keyboard.current.jKey.wasPressedThisFrame)
-        {
-            Vector2 screenPos = Camera.main.WorldToScreenPoint(rightTargetCircle.position);
-            _defineSO.SetInput(screenPos);
-        }
+        HoldInput(Keyboard.current.jKey, rightTargetCircle.position);
+        HoldInput(Keyboard.current.fKey, leftTargetCircle.position);
 
 
     }
 
-
-    //ショートノーツ時のプッシュ判定
-    //ノーツデータ内のノーツ種類と押しているかで判定を取る
-    private void SinglePush(bool isShortPush, NoteDate noteDate)
+    private void HoldInput(KeyControl Key,Vector3 circlePos) 
     {
-       // if(Keyboard.current.fKey.)
-    }
-
-    private void LongPush(bool isLongPush, NoteDate noteDate) 
-    {
-
+        if (Key.wasPressedThisFrame || Key.isPressed || Key.wasReleasedThisFrame)
+        {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(circlePos);
+            _defineSO.SetInput(screenPos, Key.wasPressedThisFrame, Key.isPressed, Key.wasReleasedThisFrame);
+        }
     }
 }
