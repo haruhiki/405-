@@ -30,7 +30,6 @@ public class InputHandller : MonoBehaviour
         HoldInput(Keyboard.current.jKey, rightTargetCircle.position);
         HoldInput(Keyboard.current.fKey, leftTargetCircle.position);
 
-
     }
 
     private void HoldInput(KeyControl Key,Vector3 circlePos) 

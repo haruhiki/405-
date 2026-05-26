@@ -22,6 +22,7 @@ public class NotsSpawn : MonoBehaviour
     public Transform rightTargetCircle; 
 
     private int spawnIndex = 0;
+    private NotesCon[] activeNoteCon = new NotesCon[2];
 
     void Start()
     {
@@ -85,10 +86,25 @@ public class NotsSpawn : MonoBehaviour
             }
         }
     }
+
     //ノーツ本体生成
     void Spawn(NoteDate.Notes noteDate)
     {
-        GameObject prefab = (noteDate.noteType == NoteDate.NotesType.Long) ? LongNotes :
+        //ロングノーツ生成チェック
+        //ロングノーツの終了点(Type 3)の処理 
+        if (noteDate.noteType == NoteDate.NotesType.Long_End)
+        {
+            if (activeNoteCon[noteDate.lane] != null)
+            {
+                // すでに生成済みのノーツに「終了時間」をセットして紐付け解除
+                activeNoteCon[noteDate.lane].SetEndTime(noteDate.targetTime);
+                activeNoteCon[noteDate.lane] = null;
+            }
+            return; // 終了点はオブジェクトを生成しないのでここで終了
+        }
+
+
+        GameObject prefab = (noteDate.noteType == NoteDate.NotesType.Long_Start) ? LongNotes :
                          (noteDate.noteType == NoteDate.NotesType.Rush) ? RushNotes : shortNotes;
 
         GameObject noteObj = Instantiate(prefab, spawnPoints[noteDate.lane].position, Quaternion.identity);
@@ -101,6 +117,12 @@ public class NotsSpawn : MonoBehaviour
 
             // NotesConのInitに目的地を引数として追加するか、内部で代入する
             controller.Init(noteDate, preSpawnTime, finalDestination);
+            
+            if(noteDate.noteType == NoteDate.NotesType.Long_Start) 
+            {
+                activeNoteCon[noteDate.lane] = controller;
+            }
+        
         }
     }
 }

@@ -8,6 +8,9 @@ public class Judge : MonoBehaviour
     [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
     [SerializeField] private float greatWindow = 0.12f;   // 可の許容時間差
 
+    private float timeDiff = 0;   //時間差変数
+    private float distance = 0;   //距離判定変数
+
     [Header("参照")]
     [SerializeField] private Define _defineSO;
     private AudioSource audioSource;
@@ -27,7 +30,7 @@ public class Judge : MonoBehaviour
         touchWorldPos.z = 0;
 
         //距離判定
-        float distance = Vector2.Distance(touchWorldPos, transform.position);
+        distance = Vector2.Distance(touchWorldPos, transform.position);
         if (distance > judgeRadius) { return; }
 
         //このレーンのノーツを取得
@@ -35,7 +38,7 @@ public class Judge : MonoBehaviour
         if (targetNote == null) {return; }
 
         //時間差（タイミング）の計算
-        float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
+        timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
 
         //ノーツの判定
         switch (targetNote.GetNoteType())
@@ -44,32 +47,16 @@ public class Judge : MonoBehaviour
                 if (_defineSO.isInputDetected) ProcessShortHit(targetNote);
                 break;
 
-            case NoteDate.NotesType.Long:
+            case NoteDate.NotesType.Long_Start:
                 ProcessLongHit(targetNote);
+                break;
+            case NoteDate.NotesType.Long_End:
+                //TODO:処理を作成
                 break;
 
             case NoteDate.NotesType.Rush:
                 ProcessRushHit(targetNote);
                 break;
-        }
-
-        //判定
-        if (timeDiff <= perfectWindow)
-        {
-            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{timeDiff:F3} 距離:{distance:F2}");
-            targetNote.OnHit();
-        }
-        else if (timeDiff <= greatWindow)
-        {
-            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{timeDiff:F3}");
-            targetNote.OnHit();
-        }
-        else
-        {
-            //デバッグ用：タイミングが早すぎる・遅すぎる場合
-            Debug.Log($"範囲外 誤差:{timeDiff:F3}");
-            //仮でMiss時にオブジェクト削除
-            targetNote.OnMiss();
         }
     }
 
@@ -99,7 +86,13 @@ public class Judge : MonoBehaviour
     void ProcessShortHit(NotesCon note)
     {
         float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
-        if (diff <= greatWindow) note.OnHit(); // 成功なら消す
+        if (diff <= greatWindow)
+        {
+            // 成功なら消す
+            //判定パス
+            JudgePass();
+        }
+      
     }
 
     /// <summary> /// 長押し /// </summary>
@@ -119,6 +112,7 @@ public class Judge : MonoBehaviour
         //離した時
         if (_defineSO.isInputRush)
         {
+            JudgePass();
             if (isLongPress)
             {
                 Debug.Log("Long Success!");
@@ -135,6 +129,35 @@ public class Judge : MonoBehaviour
         if (_defineSO.isInputDetected)
         {
             Debug.Log("Rush Tap!");
+            JudgePass();
+
+        }
+    }
+
+    /// <summary> /// 判定時のパス /// </summary>
+    private void JudgePass() 
+    {
+        //このレーンのノーツを取得
+        NotesCon targetNote = GetNearestNote();
+        if (targetNote == null) { return; }
+
+        //判定
+        if (timeDiff <= perfectWindow)
+        {
+            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{timeDiff:F3} 距離:{distance:F2}");
+            targetNote.OnHit();
+        }
+        else if (timeDiff <= greatWindow)
+        {
+            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{timeDiff:F3}");
+            targetNote.OnHit();
+        }
+        else
+        {
+            //デバッグ用：タイミングが早すぎる・遅すぎる場合
+            Debug.Log($"範囲外 誤差:{timeDiff:F3}");
+            //仮でMiss時にオブジェクト削除
+            targetNote.OnMiss();
         }
     }
 }

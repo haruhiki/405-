@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::test
   loader: {fileID: 1906241404}
-  csvFile: {fileID: 4900000, guid: 6de791646499ff242bbc0167279e78f2, type: 3}
+  csvFile: {fileID: 4900000, guid: 487f8c901e42f9849b604a086b0eeefa, type: 3}
   targetSO: {fileID: 11400000, guid: 045eca0a65c66734c822d6730dfb97cb, type: 2}
 --- !u!4 &125690774
 Transform:

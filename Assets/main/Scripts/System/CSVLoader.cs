@@ -5,11 +5,17 @@ using UnityEngine;
 public class CSVLoader : MonoBehaviour
 {
     [SerializeField] public NotesobjSO notesSO;
+
+    private bool[] isLongStarted = new bool[2];
+
     public List<NoteDate.Notes> LoadChart(TextAsset file, float bpm, float offset)
     {
         List<NoteDate.Notes> notes = new List<NoteDate.Notes>();
         if (bpm <= 0) bpm = 120f;
         if (notesSO.division <= 0) notesSO.division = 4;
+
+        isLongStarted[0] = false;
+        isLongStarted[1] = false;
 
         float secondsPerRow = 60f / (bpm * notesSO.division);
         string[] lines = file.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
@@ -27,12 +33,15 @@ public class CSVLoader : MonoBehaviour
                 string cellValue = columns[colIndex].Trim();
 
                 if (string.IsNullOrEmpty(cellValue) || cellValue == "0") continue;
+
+
                 if (int.TryParse(cellValue, out int noteTypeInt))
                 {
                     NoteDate.Notes nots = new NoteDate.Notes();
                     nots.targetTime = offset + ((i - 1) * secondsPerRow);
-                    nots.noteType = ParseType(cellValue);
-                    nots.lane = j; 
+                    nots.lane = j;
+                    nots.noteType = ParseType(cellValue,j);
+               
                     if (j == 0) //¶ƒŒ[ƒ“
                     {
                         nots.targetPosition = new Vector3(-3f, -1f, 0);
@@ -49,10 +58,23 @@ public class CSVLoader : MonoBehaviour
         return notes;
     }
 
-    private NoteDate.NotesType ParseType(string value)
+    private NoteDate.NotesType ParseType(string value,int lane)
     {
         if (value.Contains("1") || value.Contains("‚P")) return NoteDate.NotesType.Short;
-        if (value.Contains("2") || value.Contains("‚Q")) return NoteDate.NotesType.Long;
+        if (value.Contains("2") || value.Contains("‚Q")) 
+        {
+            if (!isLongStarted[lane])
+            {
+                isLongStarted[lane] = true;
+                return NoteDate.NotesType.Long_Start;
+            }
+            else
+            {
+                isLongStarted[lane] = false;
+                return NoteDate.NotesType.Long_End;
+            }
+
+        }
         if (value.Contains("3") || value.Contains("‚R")) return NoteDate.NotesType.Rush;
 
         return NoteDate.NotesType.Short;
