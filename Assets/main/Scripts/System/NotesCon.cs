@@ -50,6 +50,7 @@ public class NotesCon : MonoBehaviour
     }
 
     public float GetTargetTime() => myData.targetTime;
+    public float GetEndTime() => endTime;
     public int GetLane() => myData.lane;
 
     /// <summary> /// ノーツヒット時 /// </summary>

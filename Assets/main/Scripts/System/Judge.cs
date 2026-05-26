@@ -1,3 +1,4 @@
+using System.Transactions;
 using UnityEngine;
 
 public class Judge : MonoBehaviour
@@ -16,12 +17,13 @@ public class Judge : MonoBehaviour
     private AudioSource audioSource;
 
     private bool isLongPress = false;
+    private NotesCon currentLongNote = null;
 
     void Start() => audioSource = FindFirstObjectByType<AudioSource>();
 
     void Update()
     {
-        if (_defineSO == null || !_defineSO.isInputDetected) { return; }
+        if (_defineSO == null || (!_defineSO.isInputDetected && !_defineSO.isInputRush)) { return; }
 
         //座標変換
         float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
@@ -31,14 +33,18 @@ public class Judge : MonoBehaviour
 
         //距離判定
         distance = Vector2.Distance(touchWorldPos, transform.position);
-        if (distance > judgeRadius) { return; }
+        if (distance > judgeRadius)
+        {
+            if (_defineSO.isInputDetected) 
+            {
+                Debug.LogWarning($"<color=red>[押し始め脱落] 判定円の外です。距離: {distance:F2} / 許容: {judgeRadius}</color>");
+            }
+            return; 
+        }
 
         //このレーンのノーツを取得
-        NotesCon targetNote = GetNearestNote();
+        NotesCon targetNote = isLongPress ? currentLongNote : GetNearestNote();
         if (targetNote == null) {return; }
-
-        //時間差（タイミング）の計算
-        timeDiff = Mathf.Abs(targetNote.GetTargetTime() - audioSource.time);
 
         //ノーツの判定
         switch (targetNote.GetNoteType())
@@ -50,12 +56,9 @@ public class Judge : MonoBehaviour
             case NoteDate.NotesType.Long_Start:
                 ProcessLongHit(targetNote);
                 break;
-            case NoteDate.NotesType.Long_End:
-                //TODO:処理を作成
-                break;
 
             case NoteDate.NotesType.Rush:
-                ProcessRushHit(targetNote);
+                if(_defineSO.isInputDetected) ProcessRushHit(targetNote);
                 break;
         }
     }
@@ -90,7 +93,7 @@ public class Judge : MonoBehaviour
         {
             // 成功なら消す
             //判定パス
-            JudgePass();
+            JudgePass(note);
         }
       
     }
@@ -99,26 +102,31 @@ public class Judge : MonoBehaviour
     /// <param name="note"> noteTypeがLongの場合 </param>
     void ProcessLongHit(NotesCon note)
     {
-        float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
 
         //押し始め
-        if (_defineSO.isInputDetected && diff <= greatWindow)
+        if (_defineSO.isInputDetected && !isLongPress)
         {
-            isLongPress = true;
-            Debug.Log("Long Start!");
+            timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+
+            if(timeDiff <= greatWindow) 
+            {
+                isLongPress = true;
+                currentLongNote = note;
+                Debug.Log("Long Start!");
+            }
+
+
             //TODO:ノーツの見た目を「押下中」に変えるなどの処理
         }
 
         //離した時
-        if (_defineSO.isInputRush)
+        if (_defineSO.isInputRush && isLongPress)
         {
-            JudgePass();
-            if (isLongPress)
-            {
-                Debug.Log("Long Success!");
-                note.OnHit(); //ノーツ削除
-            }
+            timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
+            Debug.Log($"Long Release! 終了誤差: {timeDiff:F3}");
+            JudgePass(note);
             isLongPress = false;
+            currentLongNote = null;
         }
     }
 
@@ -126,19 +134,14 @@ public class Judge : MonoBehaviour
     /// <param name="note"> noteTypeがラッシュの際のみ　</param>
     void ProcessRushHit(NotesCon note)
     {
-        if (_defineSO.isInputDetected)
-        {
-            Debug.Log("Rush Tap!");
-            JudgePass();
-
-        }
+        timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+        Debug.Log("Rush Tap!");
+        JudgePass(note);
     }
 
     /// <summary> /// 判定時のパス /// </summary>
-    private void JudgePass() 
+    private void JudgePass(NotesCon targetNote) 
     {
-        //このレーンのノーツを取得
-        NotesCon targetNote = GetNearestNote();
         if (targetNote == null) { return; }
 
         //判定
