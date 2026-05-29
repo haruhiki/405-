@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::test
   loader: {fileID: 1906241404}
-  csvFile: {fileID: 4900000, guid: 487f8c901e42f9849b604a086b0eeefa, type: 3}
+  csvFile: {fileID: 4900000, guid: f006dab1ba855bf40afb9e713ef22114, type: 3}
   targetSO: {fileID: 11400000, guid: 045eca0a65c66734c822d6730dfb97cb, type: 2}
 --- !u!4 &125690774
 Transform:
@@ -1267,7 +1267,7 @@ MonoBehaviour:
   notesSpeed: 5
   preSpawnTime: 2
   shortNotes: {fileID: 4840576891515199272, guid: ef626289d91b18a42b70ea45cb893be7, type: 3}
-  LongNotes: {fileID: 4840576891515199272, guid: 8910e137a12434e43b71305ba4f31e2d, type: 3}
+  LongNotes: {fileID: 8061254861229451224, guid: aecf8fada6d1c8544af995b0b493b2c6, type: 3}
   RushNotes: {fileID: 6809138255932206062, guid: 19c041121a8646245ac7c7654e5e9197, type: 3}
   spawnPoints:
   - {fileID: 209948401}

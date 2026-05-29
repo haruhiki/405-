@@ -9,7 +9,6 @@ public class Judge : MonoBehaviour
     [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
     [SerializeField] private float greatWindow = 0.12f;   // 可の許容時間差
 
-    private float timeDiff = 0;   //時間差変数
     private float distance = 0;   //距離判定変数
 
     [Header("参照")]
@@ -23,7 +22,10 @@ public class Judge : MonoBehaviour
 
     void Update()
     {
-        if (_defineSO == null || (!_defineSO.isInputDetected && !_defineSO.isInputRush)) { return; }
+        if(_defineSO == null) { return; }
+
+        bool hasInput = _defineSO.isInputDetected || _defineSO.isInputHold || _defineSO.isInputRush;
+        if(!hasInput) { return; }
 
         //座標変換
         float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
@@ -93,7 +95,7 @@ public class Judge : MonoBehaviour
         {
             // 成功なら消す
             //判定パス
-            JudgePass(note);
+            JudgePass(note,diff);
         }
       
     }
@@ -102,29 +104,48 @@ public class Judge : MonoBehaviour
     /// <param name="note"> noteTypeがLongの場合 </param>
     void ProcessLongHit(NotesCon note)
     {
-
-        //押し始め
+        // 押し始めの判定（キーが新しく押された瞬間）
         if (_defineSO.isInputDetected && !isLongPress)
         {
-            timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+            float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
 
-            if(timeDiff <= greatWindow) 
+            if (timeDiff <= greatWindow)
             {
                 isLongPress = true;
                 currentLongNote = note;
-                Debug.Log("Long Start!");
+                note.SetHoldVisual(true);
+                Debug.Log("<color=cyan>【長押し開始】ホールド中...</color>");
             }
-
-
-            //TODO:ノーツの見た目を「押下中」に変えるなどの処理
+            return;
         }
 
-        //離した時
+        // 途中で指を離してしまった場合のペナルティ（本物の長押しには必須！）
+        // 押し始めに成功しているのに、入力システムが「押しっぱなし(isInputHold)」を検知しなくなった場合
+        if (isLongPress && !_defineSO.isInputHold && !_defineSO.isInputRush)
+        {
+            // 終了時間より圧倒的に手前で離したならコンボが切れて Miss になる
+            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
+            if (timeDiff > greatWindow)
+            {
+                Debug.Log("<color=red>【長押し失敗】途中で指が離れました！</color>");
+                note.SetHoldVisual(false);
+                note.OnMiss(); // ノーツ消滅（失敗）
+                isLongPress = false;
+                currentLongNote = null;
+
+                return;
+            }
+        }
+
+         //離した時の判定（タイミングよく指を離した瞬間）
         if (_defineSO.isInputRush && isLongPress)
         {
-            timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
-            Debug.Log($"Long Release! 終了誤差: {timeDiff:F3}");
-            JudgePass(note);
+            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
+            Debug.Log($"【長押し完了】離し誤差: {timeDiff:F3}");
+            note.SetHoldVisual(false);
+
+            JudgePass(note, timeDiff); // 成功判定なら OnHit() でノーツ消滅
+
             isLongPress = false;
             currentLongNote = null;
         }
@@ -134,31 +155,31 @@ public class Judge : MonoBehaviour
     /// <param name="note"> noteTypeがラッシュの際のみ　</param>
     void ProcessRushHit(NotesCon note)
     {
-        timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+       float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
         Debug.Log("Rush Tap!");
-        JudgePass(note);
+        JudgePass(note,timeDiff);
     }
 
     /// <summary> /// 判定時のパス /// </summary>
-    private void JudgePass(NotesCon targetNote) 
+    private void JudgePass(NotesCon targetNote, float caluculateTimeDiff) 
     {
         if (targetNote == null) { return; }
 
         //判定
-        if (timeDiff <= perfectWindow)
+        if (caluculateTimeDiff <= perfectWindow)
         {
-            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{timeDiff:F3} 距離:{distance:F2}");
+            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{caluculateTimeDiff:F3} 距離:{distance:F2}");
             targetNote.OnHit();
         }
-        else if (timeDiff <= greatWindow)
+        else if (caluculateTimeDiff <= greatWindow)
         {
-            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{timeDiff:F3}");
+            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{caluculateTimeDiff:F3}");
             targetNote.OnHit();
         }
         else
         {
             //デバッグ用：タイミングが早すぎる・遅すぎる場合
-            Debug.Log($"範囲外 誤差:{timeDiff:F3}");
+            Debug.Log($"範囲外 誤差:{caluculateTimeDiff:F3}");
             //仮でMiss時にオブジェクト削除
             targetNote.OnMiss();
         }

@@ -90,17 +90,25 @@ public class NotsSpawn : MonoBehaviour
     //ノーツ本体生成
     void Spawn(NoteDate.Notes noteDate)
     {
-        //ロングノーツ生成チェック
-        //ロングノーツの終了点(Type 3)の処理 
+        // 【デバッグ用】今から生成しようとしているノーツの情報をすべてコンソールに出す
+        Debug.Log($"<color=yellow>[Spawn通過] 時間:{noteDate.targetTime}秒 | レーン:{noteDate.lane} | 判定タイプ:{noteDate.noteType}</color>");
+
+        // ロングノーツの終了点(Type 3)の処理 
         if (noteDate.noteType == NoteDate.NotesType.Long_End)
         {
+            Debug.Log($"<color=cyan>【大成功】ロングノーツの終了処理に入りました！対象レーン:{noteDate.lane}</color>");
+
             if (activeNoteCon[noteDate.lane] != null)
             {
-                // すでに生成済みのノーツに「終了時間」をセットして紐付け解除
                 activeNoteCon[noteDate.lane].SetEndTime(noteDate.targetTime);
                 activeNoteCon[noteDate.lane] = null;
+                Debug.Log("<color=green>--> 既存のノーツに終了時間をセットし、紐付けを解除しました！</color>");
             }
-            return; // 終了点はオブジェクトを生成しないのでここで終了
+            else
+            {
+                Debug.LogWarning("--> 終了処理に入りましたが、activeNoteConが空っぽです（スタートが登録されていません）");
+            }
+            return;
         }
 
 

@@ -9,7 +9,7 @@ public class Define : ScriptableObject
     public bool isInputHold;
     public bool isInputRush;
 
-    public Vector2 inputScreenPos { get; private set; }
+    public Vector2 inputScreenPos;
 
     [Header("操作検知時のアクション")]
     Action TouchActionEvect; //操作時の各イベントをまとめて発行させる用
