@@ -3,114 +3,115 @@ using UnityEngine.InputSystem;
 
 public class NotsSpawn : MonoBehaviour
 {
-    [Header("データ・設定")]
-    public NotesobjSO notsSO;
-    public AudioSource audioSource;
-    [SerializeField] public float notesSpeed = 5.0f;   //ノーツ速度
-    [SerializeField] public float preSpawnTime = 2.0f; //ノーツ生成
+    public AudioDataSO audioDataSO;
 
-    [Header("prehub")]
-    public GameObject shortNotes;  //短押し
-    public GameObject LongNotes;   //長押し
-    public GameObject RushNotes;   //連打
+    [Header("設定")]
+    [SerializeField] public float notesSpeed = 5.0f;   //ノーツ速度
+    [SerializeField] public float preSpawnTime = 2.0f; //ノーツ生成時間
+
+    [Header("プレハブアセット（Projectビューの物を割り当てる）")]
+    public GameObject shortNotes;  //短押し用
+    public GameObject LongNotes;   //長押し用
+    public GameObject RushNotes;   //連打用
 
     [Header("生成ポイント")]
     public Transform[] spawnPoints;
 
     [Header("判定円の参照")]
-    public Transform leftTargetCircle;  
-    public Transform rightTargetCircle; 
+    public Transform leftTargetCircle;
+    public Transform rightTargetCircle;
 
+    [Header("エディタ同期設定")]
+    [Tooltip("オンにすると再生中に自動的にノーツを流します。作成中などで自動生成してほしくない時はオフにしてください。")]
+    [SerializeField] private bool autoSpawnEnabled = true;
+
+    // 内部で安全に使うための隠し参照
+    private NotesobjSO notsSO;
     private int spawnIndex = 0;
     private NotesCon[] activeNoteCon = new NotesCon[2];
 
     void Start()
     {
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
-
         spawnIndex = 0; // 開始時にリセット
-
-        if (notsSO != null)
+        if (audioDataSO != null && audioDataSO.notesobjSO != null)
         {
+            notsSO = audioDataSO.notesobjSO;
             Debug.Log($"譜面データ読み込み完了: {notsSO.notes.Count} 件のノーツがあります");
-        }
-
-        if (notsSO == null)
-        {
-            Debug.LogError("notsSO がインスペクターでセットされていません！");
         }
         else
         {
-            Debug.Log($"現在のノーツ数: {notsSO.notes.Count} 件");
+            Debug.LogWarning("audioDataSO、またはその中の notsSO がセットされていません！");
         }
     }
 
     void Update()
     {
-        //テスト用
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            if (audioSource.clip != null)
-            {
-                spawnIndex = 0; // インデックスをリセット
-                audioSource.Play();
-                Debug.Log($"再生開始: {audioSource.clip.name} / 全長: {audioSource.clip.length}秒");
-            }
-            else
-            {
-                Debug.LogError("AudioSourceにClip（曲）がセットされていません！");
-            }
-        }
+        if (!autoSpawnEnabled) return;
+        if (notsSO == null) return; // 安全対策
 
-        //再背中のみノーツ生成を行う-> それ以外はretrun 
-        if (!audioSource.isPlaying) return;
+        if (AudioManager.Instance == null) return;
+        if (!AudioManager.Instance.IsBGMPlaying()) return;
 
-        float currentTime = audioSource.time;
+        float currentTime = AudioManager.Instance.GetCurrentTime();
 
         while (spawnIndex < notsSO.notes.Count)
         {
             float target = notsSO.notes[spawnIndex].targetTime;
             float spawnAt = target - preSpawnTime;
 
-            Debug.Log($"[Index:{spawnIndex}] 左辺(SpawnAt):{spawnAt:F3} <= 右辺(Current):{currentTime:F3}");
-
             if (spawnAt <= currentTime)
             {
-                Debug.Log("<color=green>条件クリア！生成します</color>");
                 Spawn(notsSO.notes[spawnIndex]);
                 spawnIndex++;
             }
             else
-            { 
+            {
                 break;
             }
         }
     }
 
-    //ノーツ本体生成
+    public void ResetSpawnIndexToTime(float time)
+    {
+        if (notsSO == null) return;
+
+        spawnIndex = 0;
+        while (spawnIndex < notsSO.notes.Count)
+        {
+            float target = notsSO.notes[spawnIndex].targetTime;
+            float spawnAt = target - preSpawnTime;
+
+            if (spawnAt > time)
+            {
+                break;
+            }
+            spawnIndex++;
+        }
+
+        NotesCon[] activeInScene = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
+        foreach (var note in activeInScene)
+        {
+            if (note.enabled)
+            {
+                Destroy(note.gameObject);
+            }
+        }
+
+        System.Array.Clear(activeNoteCon, 0, activeNoteCon.Length);
+        Debug.Log($"【生成インデックス同期】変更時間: {time:F3}s | 再開インデックス: {spawnIndex}");
+    }
+
     void Spawn(NoteDate.Notes noteDate)
     {
-        // 【デバッグ用】今から生成しようとしているノーツの情報をすべてコンソールに出す
-        Debug.Log($"<color=yellow>[Spawn通過] 時間:{noteDate.targetTime}秒 | レーン:{noteDate.lane} | 判定タイプ:{noteDate.noteType}</color>");
-
-        // ロングノーツの終了点(Type 3)の処理 
         if (noteDate.noteType == NoteDate.NotesType.Long_End)
         {
-            Debug.Log($"<color=cyan>【大成功】ロングノーツの終了処理に入りました！対象レーン:{noteDate.lane}</color>");
-
             if (activeNoteCon[noteDate.lane] != null)
             {
                 activeNoteCon[noteDate.lane].SetEndTime(noteDate.targetTime);
                 activeNoteCon[noteDate.lane] = null;
-                Debug.Log("<color=green>--> 既存のノーツに終了時間をセットし、紐付けを解除しました！</color>");
-            }
-            else
-            {
-                Debug.LogWarning("--> 終了処理に入りましたが、activeNoteConが空っぽです（スタートが登録されていません）");
             }
             return;
         }
-
 
         GameObject prefab = (noteDate.noteType == NoteDate.NotesType.Long_Start) ? LongNotes :
                          (noteDate.noteType == NoteDate.NotesType.Rush) ? RushNotes : shortNotes;
@@ -119,18 +120,13 @@ public class NotsSpawn : MonoBehaviour
         NotesCon controller = noteObj.GetComponent<NotesCon>();
         if (controller != null)
         {
-            // CSV上の座標(noteDate.targetPosition)ではなく、
-            // シーン上の実際の円(leftTargetCircleなど)の座標を目的地として渡す
             Vector3 finalDestination = (noteDate.lane == 0) ? leftTargetCircle.position : rightTargetCircle.position;
-
-            // NotesConのInitに目的地を引数として追加するか、内部で代入する
             controller.Init(noteDate, preSpawnTime, finalDestination);
-            
-            if(noteDate.noteType == NoteDate.NotesType.Long_Start) 
+
+            if (noteDate.noteType == NoteDate.NotesType.Long_Start)
             {
                 activeNoteCon[noteDate.lane] = controller;
             }
-        
         }
     }
 }

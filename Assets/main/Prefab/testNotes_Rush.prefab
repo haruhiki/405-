@@ -27,8 +27,8 @@ Transform:
   m_GameObject: {fileID: 6809138255932206062}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0665, y: 1.4753, z: 0}
-  m_LocalScale: {x: 7.1669, y: 0.9693, z: 1}
+  m_LocalPosition: {x: -2.9048, y: 1.2388, z: 0}
+  m_LocalScale: {x: 1.4899986, y: 1.442349, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -104,3 +104,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d10e272b06653c4c8005daaff497a00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NotesCon
+  trailObject: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  trailRenderer: {fileID: 0}
+  headRend: {fileID: 0}
+  TailRend: {fileID: 0}

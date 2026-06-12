@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb71d56babc06644b09a086097fd396, type: 3}
+  m_Name: AudioDataSO_ShiningStar
+  m_EditorClassIdentifier: Assembly-CSharp::AudioDataSO
+  musicTitle: "\u30B7\u30E3\u30A4\u30CB\u30F3\u30B0\u30B9\u30BF\u30FC"
+  artistName: "\u9B54\u738B\u9B42"
+  bpm: 120
+  audioClip: {fileID: 8300000, guid: 42265cb3683c1884f9fcaa8aa4f8016d, type: 3}
+  csvChartFile: {fileID: 4900000, guid: 5ad424908e797eb429f52b3003b514b1, type: 3}
+  notesobjSO: {fileID: 11400000, guid: 045eca0a65c66734c822d6730dfb97cb, type: 2}
+  offsetSeconds: 0

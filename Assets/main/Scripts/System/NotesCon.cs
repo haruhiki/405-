@@ -8,7 +8,6 @@ public class NotesCon : MonoBehaviour
     private Vector3 spawnPos;
     private bool isInitialized = false;
 
-    private AudioSource audioSource;
     private Vector3 targetWorldPos;
 
     private float endTime;
@@ -18,51 +17,50 @@ public class NotesCon : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private SpriteRenderer trailRenderer;
 
-    //色変化用のレンダらー
+    //色変化用のレンダラー
     [SerializeField] private SpriteRenderer headRend, TailRend;
 
     private float notesSpeed = 5.0f;
     private bool isHolding = false;
 
-
-
-
     private void Start()
     {
-        if(spriteRenderer == null) { spriteRenderer = GetComponent<SpriteRenderer>(); }
+        if (spriteRenderer == null) { spriteRenderer = GetComponent<SpriteRenderer>(); }
 
         //帯用のレンダラーが未アタッチの場合Trailから取得を試みる
-        if(trailRenderer == null && trailObject != null) 
+        if (trailRenderer == null && trailObject != null)
         {
             trailRenderer = trailObject.GetComponentInChildren<SpriteRenderer>();
         }
     }
 
-
+    /// <summary>
+    /// ノーツの初期化処理
+    /// </summary>
     public void Init(NoteDate.Notes data, float duration, Vector3 realTarget)
     {
         myData = data;
         moveDuration = duration;
         targetWorldPos = realTarget; //本物の円の座標を保存
-        audioSource = FindFirstObjectByType<AudioSource>();
+
         spawnPos = transform.position;
         startTime = myData.targetTime - moveDuration;
 
-        //生成一と目的値の距離からノーツスピード計算
+        //生成位置と目的地の距離からノーツスピード計算
         float distance = Vector3.Distance(spawnPos, targetWorldPos);
         notesSpeed = distance / moveDuration;
 
         isInitialized = true;
 
-        if(myData.noteType != NoteDate.NotesType.Long_Start) 
+        if (myData.noteType != NoteDate.NotesType.Long_Start)
         {
             endTime = myData.targetTime;
             isEndTimeSet = true;
         }
-        else 
+        else
         {
             //初期状態ではロングの帯の長さを0にしておく
-            if(trailObject != null) 
+            if (trailObject != null)
             {
                 Vector3 localScale = trailObject.localScale;
                 localScale.y = 0;
@@ -73,11 +71,11 @@ public class NotesCon : MonoBehaviour
 
     void Update()
     {
-        if (!isInitialized || audioSource == null) return;
+        if (!isInitialized) return;
+        if (AudioManager.Instance == null) return;
+        float currentTime = AudioManager.Instance.GetCurrentTime();
 
-        float currentTime = audioSource.time;
-
-        if(myData.noteType == NoteDate.NotesType.Long_Start && isEndTimeSet) 
+        if (myData.noteType == NoteDate.NotesType.Long_Start && isEndTimeSet)
         {
             //ロングノーツ専用の移動・収縮処理
             if (isHolding)
@@ -87,32 +85,30 @@ public class NotesCon : MonoBehaviour
 
                 //終了時間に向けて帯が尻から判定ラインに向かって段々縮む
                 float remainingTime = endTime - currentTime;
-                if(remainingTime > 0)
+                if (remainingTime > 0)
                 {
                     float currentLength = remainingTime * notesSpeed;
                     SetTrailHeight(currentLength);
                 }
-                else 
+                else
                 {
                     SetTrailHeight(0);
                     OnHit();
                 }
             }
-            else 
+            else
             {
-                //長押し前　生成位置から判定ラインに向かって通常移動
-                float prgress= (currentTime - startTime) / moveDuration;
+                //長押し前 生成位置から判定ラインに向かって通常移動
+                float prgress = (currentTime - startTime) / moveDuration;
                 transform.position = Vector3.LerpUnclamped(spawnPos, targetWorldPos, prgress);
-
             }
 
-            if(currentTime > endTime + 0.5f)
+            if (currentTime > endTime + 0.5f)
             {
                 OnMiss();
             }
-
         }
-        else 
+        else
         {
             //通常ノーツ（ShortやRush）の移動処理
             float progress = (currentTime - startTime) / moveDuration;
@@ -123,9 +119,7 @@ public class NotesCon : MonoBehaviour
                 //判定ラインを過ぎて 0.5秒後に消える（突き抜け演出）
                 if (currentTime > myData.targetTime + 0.5f) { OnMiss(); }
             }
-
         }
-
     }
 
     public float GetTargetTime() => myData.targetTime;
@@ -137,17 +131,16 @@ public class NotesCon : MonoBehaviour
 
     //ノーツヒットミス時
     public void OnMiss()
-    { 
-        Debug.Log("Miss!"); 
-        Destroy(gameObject); 
+    {
+        Debug.Log("Miss!");
+        Destroy(gameObject);
     }
 
-    public  void SetEndTime(float time) 
+    public void SetEndTime(float time)
     {
         endTime = time;
         isEndTimeSet = true;
         UpdateTrailScale();
-
     }
 
     private void UpdateTrailScale()
@@ -160,26 +153,23 @@ public class NotesCon : MonoBehaviour
         //物理的な長さを算出して適用
         float targetHeight = longDuration * notesSpeed;
         SetTrailHeight(targetHeight);
-
     }
-
 
     /// <summary>
     /// 帯オブジェクトのYスケールを設定する
     /// </summary>
-    /// <param name="height"></param>
-    private void SetTrailHeight(float height) 
+    private void SetTrailHeight(float height)
     {
-        if(trailObject == null) { return; }
+        if (trailObject == null) { return; }
         Vector3 localScale = trailObject.localScale;
         localScale.y = height;
         trailObject.localScale = localScale;
     }
 
-    public void SetHoldVisual(bool isHolding) 
+    public void SetHoldVisual(bool isHolding)
     {
-        if(spriteRenderer == null) return;
-        if (isHolding) 
+        if (spriteRenderer == null) return;
+        if (isHolding)
         {
             spriteRenderer.color = new Color(1f, 0.92f, 0.016f, 0.6f);
         }
@@ -201,13 +191,9 @@ public class NotesCon : MonoBehaviour
                 trailRenderer.color = Color.white;
             }
         }
-
-
     }
 
-
-    /// <summary> /// ノーツタイプを取得　/// </summary>
-    /// <returns></returns>
+    /// <summary> /// ノーツタイプを取得 /// </summary>
     public NoteDate.NotesType GetNoteType() => myData.noteType;
 
 

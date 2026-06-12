@@ -4,14 +4,28 @@ using UnityEngine;
 
 public class CSVLoader : MonoBehaviour
 {
-    [SerializeField] public NotesobjSO notesSO;
+    public AudioDataSO audioDataSO;
 
     private bool[] isLongStarted = new bool[2];
 
-    public List<NoteDate.Notes> LoadChart(TextAsset file, float bpm, float offset)
+    /// <summary>
+    /// AudioDataSOに登録されているCSVファイルと楽曲設定から譜面を生成するぜブラザー！
+    /// </summary>
+    public List<NoteDate.Notes> LoadChartFromAudioData()
     {
         List<NoteDate.Notes> notes = new List<NoteDate.Notes>();
-        if (bpm <= 0) bpm = 120f;
+
+        if (audioDataSO == null || audioDataSO.notesobjSO == null || audioDataSO.csvChartFile == null)
+        {
+            Debug.LogError("[CSVLoader] AudioDataSO、または内部のSO・CSVファイルがセットされていません！");
+            return notes;
+        }
+
+        NotesobjSO notesSO = audioDataSO.notesobjSO;
+        TextAsset file = audioDataSO.csvChartFile;
+        float bpm = notesSO.bpm <= 0 ? 120f : notesSO.bpm;
+        float offset = notesSO.offset;
+
         if (notesSO.division <= 0) notesSO.division = 4;
 
         isLongStarted[0] = false;
@@ -24,29 +38,26 @@ public class CSVLoader : MonoBehaviour
         {
             string[] columns = lines[i].Split(',');
 
-            // columns[2]がB列(左)、columns[3]がC列(右)
             for (int j = 0; j <= 1; j++)
             {
                 int colIndex = j + 2; // 2 または 3
                 if (columns.Length <= colIndex) continue;
 
                 string cellValue = columns[colIndex].Trim();
-
                 if (string.IsNullOrEmpty(cellValue) || cellValue == "0") continue;
-
 
                 if (int.TryParse(cellValue, out int noteTypeInt))
                 {
                     NoteDate.Notes nots = new NoteDate.Notes();
                     nots.targetTime = offset + ((i - 1) * secondsPerRow);
                     nots.lane = j;
-                    nots.noteType = ParseType(cellValue,j);
-               
+                    nots.noteType = ParseType(cellValue, j);
+
                     if (j == 0) //左レーン
                     {
                         nots.targetPosition = new Vector3(-3f, -1f, 0);
                     }
-                    else //右レーン
+                    else //右レーen
                     {
                         nots.targetPosition = new Vector3(3f, -1f, 0);
                     }
@@ -58,10 +69,10 @@ public class CSVLoader : MonoBehaviour
         return notes;
     }
 
-    private NoteDate.NotesType ParseType(string value,int lane)
+    private NoteDate.NotesType ParseType(string value, int lane)
     {
         if (value.Contains("1") || value.Contains("１")) return NoteDate.NotesType.Short;
-        if (value.Contains("2") || value.Contains("２")) 
+        if (value.Contains("2") || value.Contains("２"))
         {
             if (!isLongStarted[lane])
             {
@@ -73,7 +84,6 @@ public class CSVLoader : MonoBehaviour
                 isLongStarted[lane] = false;
                 return NoteDate.NotesType.Long_End;
             }
-
         }
         if (value.Contains("3") || value.Contains("３")) return NoteDate.NotesType.Rush;
 
@@ -84,6 +94,5 @@ public class CSVLoader : MonoBehaviour
     {
         return 60f / (data.bpm * data.division);
     }
-
 
 }
