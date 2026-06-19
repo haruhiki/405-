@@ -10,12 +10,12 @@ public class InputHandller : MonoBehaviour
 
     private void Update()
     {
-        // 1. 毎フレームの最初に入力フラグを綺麗にリセット
+        //毎フレームの最初に入力フラグを綺麗にリセット
         _defineSO.isInputDetected = false; // 押した瞬間フラグ
         _defineSO.isInputHold = false;     // 押しっぱなしフラグ
         _defineSO.isInputRush = false;     // 離した瞬間フラグ（変数名はそのまま流用）
 
-        // 2. 左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
+        //左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
         CheckKeyInput(Keyboard.current.fKey, leftTargetCircle.position); // 左レーン
         CheckKeyInput(Keyboard.current.jKey, rightTargetCircle.position); // 右レーン
     }
