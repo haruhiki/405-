@@ -27,10 +27,10 @@ public class InputHandller : MonoBehaviour
         // いずれかの入力が確認された場合のみ処理
         if (key.wasPressedThisFrame || key.isPressed || key.wasReleasedThisFrame)
         {
-            // 判定円のスクリーン座標を計算
+            //判定円のスクリーン座標を計算
             Vector2 screenPos = Camera.main.WorldToScreenPoint(circlePos);
 
-            // 【重要】現在タッチしている座標として DefineSO に渡す
+            //現在タッチしている座標として DefineSO に渡す
             _defineSO.inputScreenPos = screenPos;
 
             // 押した瞬間（1フレームのみ）
@@ -40,13 +40,13 @@ public class InputHandller : MonoBehaviour
                 Debug.Log($"[Input] キーが押されました！ レーン座標: {screenPos}");
             }
 
-            // 押しっぱなし中（押している間ずっと true）
+            //押しっぱなし中（押している間ずっと true）
             if (key.isPressed)
             {
                 _defineSO.isInputHold = true;
             }
 
-            // 離した瞬間（1フレームのみ）
+            //離した瞬間（1フレームのみ）
             if (key.wasReleasedThisFrame)
             {
                 _defineSO.isInputRush = true; // Judge側で使っている離し判定フラグ

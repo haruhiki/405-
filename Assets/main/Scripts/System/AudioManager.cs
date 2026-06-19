@@ -235,7 +235,7 @@ public class SESound
     public enum SEDATA
     {
         character,
-        Lever,
+        Tap,
         System,
         None,
     }

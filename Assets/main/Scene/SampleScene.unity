@@ -347,7 +347,33 @@ MonoBehaviour:
   SESource: {fileID: 84301256}
   BGMSoruce: {fileID: 84301255}
   BGMSounds: []
-  SECategorys: []
+  SECategorys:
+  - categoryName: SE_SoundTap
+    sounds:
+    - seData: 1
+      seclip: {fileID: 8300000, guid: f291a2ad643b342449965db202e5c09f, type: 3}
+      seVolume: 1
+    - seData: 1
+      seclip: {fileID: 8300000, guid: 6dd26898791c3a24badc65aa6aa4b7ae, type: 3}
+      seVolume: 1
+    - seData: 1
+      seclip: {fileID: 8300000, guid: 9af72707f954c6e4cae25fb460d9a4bc, type: 3}
+      seVolume: 1
+  - categoryName: MuesicSelect
+    sounds:
+    - seData: 1
+      seclip: {fileID: 8300000, guid: f291a2ad643b342449965db202e5c09f, type: 3}
+      seVolume: 0
+  - categoryName: Character
+    sounds:
+    - seData: 1
+      seclip: {fileID: 8300000, guid: f291a2ad643b342449965db202e5c09f, type: 3}
+      seVolume: 0
+  - categoryName: System
+    sounds:
+    - seData: 1
+      seclip: {fileID: 8300000, guid: f291a2ad643b342449965db202e5c09f, type: 3}
+      seVolume: 0
   masterVolume: 1
   bgmmasterVolume: 1
   semasterVolume: 1

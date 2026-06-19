@@ -1,3 +1,4 @@
+using NUnit.Framework.Interfaces;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,6 @@ using UnityEngine;
 public class CSVLoader : MonoBehaviour
 {
     public AudioDataSO audioDataSO;
-
-    private bool[] isLongStarted = new bool[2];
 
     /// <summary>
     /// AudioDataSOに登録されているCSVファイルと楽曲設定から譜面を生成する
@@ -21,78 +20,69 @@ public class CSVLoader : MonoBehaviour
             return notes;
         }
 
-        NotesobjSO notesSO = audioDataSO.notesobjSO;
         TextAsset file = audioDataSO.csvChartFile;
-        float bpm = notesSO.bpm <= 0 ? 120f : notesSO.bpm;
-        float offset = notesSO.offset;
-
-        if (notesSO.division <= 0) notesSO.division = 4;
-
-        isLongStarted[0] = false;
-        isLongStarted[1] = false;
-
-        float secondsPerRow = 60f / (bpm * notesSO.division);
         string[] lines = file.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
         for (int i = 1; i < lines.Length; i++)
         {
             string[] columns = lines[i].Split(',');
+            if (columns.Length < 4) { continue; }
 
-            for (int j = 0; j <= 1; j++)
+            try
             {
-                int colIndex = j + 2; // 2 または 3
-                if (columns.Length <= colIndex) continue;
+                //各列からデータをパース
+                float targetTime = float.Parse(columns[1].Trim());
+                int lane = int.Parse(columns[2].Trim());
+                int typeInt = int.Parse(columns[3].Trim());
 
-                string cellValue = columns[colIndex].Trim();
-                if (string.IsNullOrEmpty(cellValue) || cellValue == "0") continue;
+                //構造体にデータを詰め込む
+                NoteDate.Notes note = new NoteDate.Notes();
+                note.targetTime = targetTime;
+                note.lane = lane;
 
-                if (int.TryParse(cellValue, out int noteTypeInt))
+                if (typeInt == 1)
                 {
-                    NoteDate.Notes nots = new NoteDate.Notes();
-                    nots.targetTime = offset + ((i - 1) * secondsPerRow);
-                    nots.lane = j;
-                    nots.noteType = ParseType(cellValue, j);
-
-                    if (j == 0) //左レーン
-                    {
-                        nots.targetPosition = new Vector3(-3f, -1f, 0);
-                    }
-                    else //右レーen
-                    {
-                        nots.targetPosition = new Vector3(3f, -1f, 0);
-                    }
-
-                    notes.Add(nots);
+                    note.noteType = NoteDate.NotesType.Short;
                 }
+                else if (typeInt == 2)
+                {
+                    //CSVの末尾コメント（5列目）を見て、StartかEndかを完璧に見極める
+                    string noteComment = columns.Length > 4 ? columns[4].Trim() : "";
+                    if (noteComment.Contains("LongEnd"))
+                    {
+                        note.noteType = NoteDate.NotesType.Long_End;
+                    }
+                    else
+                    {
+                        note.noteType = NoteDate.NotesType.Long_Start;
+                    }
+                }
+                else if (typeInt == 3)
+                {
+                    note.noteType = NoteDate.NotesType.Rush;
+                }
+
+                //レーンに応じたターゲットの割り当て
+                if (lane == 0)
+                {
+                    note.targetPosition = new Vector3(-3f, -1f, 0); // 左
+                }
+                else
+                {
+                    note.targetPosition = new Vector3(3f, -1f, 0);  // 右
+                }
+
+                notes.Add(note);
+            }
+
+            catch (Exception ex) 
+            {
+                Debug.LogWarning($"[CSVLoader] 行{i + 1}のパースに失敗):{ex.Message}");
             }
         }
+        //時間順にソート
+        notes.Sort((a, b) => a.targetTime.CompareTo(b.targetTime));
         return notes;
-    }
-
-    private NoteDate.NotesType ParseType(string value, int lane)
-    {
-        if (value.Contains("1") || value.Contains("１")) return NoteDate.NotesType.Short;
-        if (value.Contains("2") || value.Contains("２"))
-        {
-            if (!isLongStarted[lane])
-            {
-                isLongStarted[lane] = true;
-                return NoteDate.NotesType.Long_Start;
-            }
-            else
-            {
-                isLongStarted[lane] = false;
-                return NoteDate.NotesType.Long_End;
-            }
-        }
-        if (value.Contains("3") || value.Contains("３")) return NoteDate.NotesType.Rush;
-
-        return NoteDate.NotesType.Short;
-    }
-
-    public float CalculateSecondsPerRow(NotesobjSO data)
-    {
-        return 60f / (data.bpm * data.division);
     }
 
 }
