@@ -441,7 +441,7 @@ MonoBehaviour:
   masterVolume: 1
   bgmmasterVolume: 1
   semasterVolume: 1
-  activeAudioData: {fileID: 11400000, guid: b574a7e50a605e540bf5493310ec082c, type: 2}
+  activeAudioData: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
 --- !u!4 &947211012
 Transform:
   m_ObjectHideFlags: 0
@@ -879,7 +879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f8fb10b4c31614194c384464175939, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NotsSpawn
-  audioDataSO: {fileID: 11400000, guid: b574a7e50a605e540bf5493310ec082c, type: 2}
+  audioDataSO: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
   notesSpeed: 5
   preSpawnTime: 2
   shortNotes: {fileID: 4840576891515199272, guid: ef626289d91b18a42b70ea45cb893be7, type: 3}
@@ -995,6 +995,6 @@ SceneRoots:
   - {fileID: 2032316767}
   - {fileID: 947211012}
   - {fileID: 41476649}
-  - {fileID: 2030477113}
   - {fileID: 1631519330}
   - {fileID: 1820871049}
+  - {fileID: 2030477113}

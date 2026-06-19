@@ -124,7 +124,7 @@ public class ChretCreateManager : MonoBehaviour
         Transform spawnPoint = notsSpawn.spawnPoints[lane];
         Transform targetCircle = (lane == 0) ? notsSpawn.leftTargetCircle : notsSpawn.rightTargetCircle;
 
-        // 1. キーが押された瞬間（ノーツを上に生成して、本編と同じ挙動で降下開始）
+        //キーが押された瞬間（ノーツを上に生成して、本編と同じ挙動で降下開始）
         if (key.wasPressedThisFrame)
         {
             // CSVに記録するための、リアルタイムの「本当の打鍵時間」
@@ -141,12 +141,11 @@ public class ChretCreateManager : MonoBehaviour
                     NoteDate.Notes tempNote = new NoteDate.Notes();
                     tempNote.lane = lane;
 
-                    // 【本編と同じ挙動をさせるためのターゲットタイム設定】
-                    // 今（currentTime）上から降らせて、preSpawnTime秒後に判定円にジャストで届くように設定する
+                    //上から降らせて、preSpawnTime秒後に判定円にジャストで届くように設定する
                     tempNote.targetTime = currentTime + notsSpawn.preSpawnTime;
                     tempNote.noteType = NoteDate.NotesType.Long_Start;
 
-                    // ★NotesConの自動移動Update（本編の動き）をそのまま生かす（enabled = true）
+                    //NotesConの自動移動Update（本編の動き）をそのまま生かす（enabled = true）
                     notesCon.Init(tempNote, notsSpawn.preSpawnTime, targetCircle.position);
                     notesCon.SetHoldVisual(true);
 
@@ -155,7 +154,7 @@ public class ChretCreateManager : MonoBehaviour
             }
         }
 
-        // 2. 押しっぱなし中：本編のロングノーツと同じように、お尻（末端）を伸ばしながら下に下がっていく
+        //押しっぱなし中：本編のロングノーツと同じように、お尻（末端）を伸ばしながら下に下がっていく
         if (key.isPressed && activeRecordingNotes[lane] != null)
         {
             // 押している長さに応じて、ロングの末端時間を未来に更新し続ける
@@ -163,7 +162,7 @@ public class ChretCreateManager : MonoBehaviour
             activeRecordingNotes[lane].SetEndTime(holdStartTimes[lane] + notsSpawn.preSpawnTime + elapsed);
         }
 
-        // 3. 離された瞬間
+        //離された瞬間
         if (key.wasReleasedThisFrame)
         {
             float duration = currentTime - holdStartTimes[lane];

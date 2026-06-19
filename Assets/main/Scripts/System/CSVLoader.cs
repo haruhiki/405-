@@ -9,7 +9,7 @@ public class CSVLoader : MonoBehaviour
     private bool[] isLongStarted = new bool[2];
 
     /// <summary>
-    /// AudioDataSOに登録されているCSVファイルと楽曲設定から譜面を生成するぜブラザー！
+    /// AudioDataSOに登録されているCSVファイルと楽曲設定から譜面を生成する
     /// </summary>
     public List<NoteDate.Notes> LoadChartFromAudioData()
     {

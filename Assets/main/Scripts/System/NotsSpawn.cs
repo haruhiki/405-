@@ -32,15 +32,25 @@ public class NotsSpawn : MonoBehaviour
 
     void Start()
     {
-        spawnIndex = 0; // 開始時にリセット
+        // 起動時にデータを読み込む
+        RefreshChartData();
+    }
+
+    /// <summary>
+    /// 譜面SO（ScriptableObject）の最新データを安全に読み込み直す
+    /// </summary>
+    public void RefreshChartData()
+    {
+        spawnIndex = 0; // インデックスをリセット
+
         if (audioDataSO != null && audioDataSO.notesobjSO != null)
         {
             notsSO = audioDataSO.notesobjSO;
-            Debug.Log($"譜面データ読み込み完了: {notsSO.notes.Count} 件のノーツがあります");
+            Debug.Log($"<color=lime>【NotsSpawn同期】</color> 譜面データを最新に更新したぜ！ 合計: {notsSO.notes.Count} 件");
         }
         else
         {
-            Debug.LogWarning("audioDataSO、またはその中の notsSO がセットされていません！");
+            Debug.LogWarning("NotsSpawn: audioDataSO、またはその中の notsSO がセットされていません！");
         }
     }
 
