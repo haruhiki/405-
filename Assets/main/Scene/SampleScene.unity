@@ -398,6 +398,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::test
   loader: {fileID: 1906241404}
   audioDataSO: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
+  notsSpawn: {fileID: 2087988359}
+  autoStartOnLaunch: 1
 --- !u!4 &125690774
 Transform:
   m_ObjectHideFlags: 0
@@ -575,7 +577,7 @@ Transform:
   m_GameObject: {fileID: 209948400}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.71, y: 5.79, z: 0}
+  m_LocalPosition: {x: -3, y: 5.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -790,7 +792,7 @@ Transform:
   m_GameObject: {fileID: 655431278}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.73, y: 5.6, z: 0}
+  m_LocalPosition: {x: 3, y: 5.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -852,7 +854,7 @@ Transform:
   m_GameObject: {fileID: 1150513272}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.90779, y: -1.27009, z: 0}
+  m_LocalPosition: {x: 0, y: -3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1380,7 +1382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f8fb10b4c31614194c384464175939, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NotsSpawn
-  audioDataSO: {fileID: 0}
+  audioDataSO: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
   notesSpeed: 5
   preSpawnTime: 2
   shortNotes: {fileID: 4840576891515199272, guid: ef626289d91b18a42b70ea45cb893be7, type: 3}

@@ -890,7 +890,7 @@ MonoBehaviour:
   - {fileID: 2030477113}
   leftTargetCircle: {fileID: 390409222}
   rightTargetCircle: {fileID: 250615943}
-  autoSpawnEnabled: 0
+  autoSpawnEnabled: 1
 --- !u!4 &1820871049
 Transform:
   m_ObjectHideFlags: 0

@@ -23,7 +23,7 @@ MonoBehaviour:
   - targetTime: 4
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 3
   - targetTime: 4.125
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -31,7 +31,7 @@ MonoBehaviour:
   - targetTime: 4.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 3
   - targetTime: 4.25
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -63,7 +63,7 @@ MonoBehaviour:
   - targetTime: 4.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 4.75
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -71,71 +71,79 @@ MonoBehaviour:
   - targetTime: 4.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
+  - targetTime: 4.875
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 4.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 5
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
   - targetTime: 5.125
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 5.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
+  - targetTime: 5.25
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 5.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 5.375
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 5.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
+  - targetTime: 5.5
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 5.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
-  - targetTime: 5.625
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 5.625
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 5.75
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 5.75
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 5.875
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 5.875
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
-  - targetTime: 6
+  - targetTime: 5.625
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
-  - targetTime: 6
+  - targetTime: 5.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
-  - targetTime: 6.125
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
+  - targetTime: 5.75
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 5.875
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 6
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 6.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
   - targetTime: 6.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
@@ -145,17 +153,17 @@ MonoBehaviour:
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
   - targetTime: 6.5
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 6.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
   - targetTime: 6.625
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 6.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 3
   - targetTime: 6.75
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -163,15 +171,23 @@ MonoBehaviour:
   - targetTime: 6.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 3
+  - targetTime: 6.875
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 6.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 3
+  - targetTime: 7
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 7
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 3
   - targetTime: 7.125
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -189,17 +205,9 @@ MonoBehaviour:
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
   - targetTime: 7.375
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 7.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
-  - targetTime: 7.5
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
   - targetTime: 7.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
@@ -208,6 +216,10 @@ MonoBehaviour:
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
+  - targetTime: 7.75
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 7.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
@@ -227,23 +239,27 @@ MonoBehaviour:
   - targetTime: 8.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
-  - targetTime: 8.25
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 8.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
+  - targetTime: 8.375
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 8.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
+  - targetTime: 8.5
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 8.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 8.625
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -251,7 +267,7 @@ MonoBehaviour:
   - targetTime: 8.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 8.75
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -259,35 +275,35 @@ MonoBehaviour:
   - targetTime: 8.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 8.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
+  - targetTime: 9
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 9
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
-  - targetTime: 9.125
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 9.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
+  - targetTime: 9.25
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 9.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 9.375
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 9.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
   - targetTime: 9.5
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -295,19 +311,23 @@ MonoBehaviour:
   - targetTime: 9.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
   - targetTime: 9.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 1
   - targetTime: 9.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 2
+  - targetTime: 9.875
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 9.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 1
   - targetTime: 10
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -315,7 +335,7 @@ MonoBehaviour:
   - targetTime: 10
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 2
   - targetTime: 10.125
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -323,39 +343,27 @@ MonoBehaviour:
   - targetTime: 10.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
-  - targetTime: 10.25
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 10.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
-  - targetTime: 10.375
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 10.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 1
   - targetTime: 10.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 2
   - targetTime: 10.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 10.75
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
-  - targetTime: 10.75
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 10.75
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
   - targetTime: 10.875
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -369,81 +377,77 @@ MonoBehaviour:
     targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 11
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 11.125
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 11.125
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 11.25
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 11.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
-  - targetTime: 11.375
+  - targetTime: 11.125
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 11.125
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 11.25
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 11.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
+  - targetTime: 11.5
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 11.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
+  - targetTime: 11.625
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 11.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
-  - targetTime: 11.75
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 11.75
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 11.875
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
-  - targetTime: 11.875
-    lane: 1
-    targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 12
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 12
+  - targetTime: 11.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
-  - targetTime: 12.125
+  - targetTime: 11.875
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 11.875
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 12
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 12.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 1
   - targetTime: 12.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 2
+  - targetTime: 12.375
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 12.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 12.5
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -461,13 +465,25 @@ MonoBehaviour:
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
   - targetTime: 12.75
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 12.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 1
   - targetTime: 12.875
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 12.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
+  - targetTime: 13
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 13
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
@@ -479,30 +495,18 @@ MonoBehaviour:
   - targetTime: 13.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 2
   - targetTime: 13.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
-  - targetTime: 13.375
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 13.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 13.5
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 13.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 13.625
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 13.625
     lane: 1
@@ -519,11 +523,15 @@ MonoBehaviour:
   - targetTime: 14
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
+  - targetTime: 14.125
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 14.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 14.25
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -531,7 +539,7 @@ MonoBehaviour:
   - targetTime: 14.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 3
   - targetTime: 14.375
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -539,23 +547,39 @@ MonoBehaviour:
   - targetTime: 14.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 3
+  - targetTime: 14.5
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 14.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 14.625
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 14.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 14.75
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 14.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 3
+  - targetTime: 14.875
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 14.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 3
   - targetTime: 15
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -563,7 +587,7 @@ MonoBehaviour:
   - targetTime: 15
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 15.125
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -571,7 +595,7 @@ MonoBehaviour:
   - targetTime: 15.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 15.25
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -587,7 +611,7 @@ MonoBehaviour:
   - targetTime: 15.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 15.5
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -595,50 +619,38 @@ MonoBehaviour:
   - targetTime: 15.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
+  - targetTime: 15.625
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 15.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 15.75
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 15.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 15.875
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
+    noteType: 2
   - targetTime: 15.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 16
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
+    noteType: 1
   - targetTime: 16
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 16.125
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
+    noteType: 2
   - targetTime: 16.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 0
   - targetTime: 16.25
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 16.25
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
-  - targetTime: 16.375
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 16.375
     lane: 1
@@ -647,10 +659,14 @@ MonoBehaviour:
   - targetTime: 16.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 1
   - targetTime: 16.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 16.75
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 16.75
     lane: 1
@@ -663,18 +679,18 @@ MonoBehaviour:
   - targetTime: 16.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
+  - targetTime: 17
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
   - targetTime: 17
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
+    noteType: 0
   - targetTime: 17.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 3
-  - targetTime: 17.25
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 17.25
     lane: 1
@@ -687,7 +703,7 @@ MonoBehaviour:
   - targetTime: 17.375
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 1
   - targetTime: 17.5
     lane: 0
     targetPosition: {x: -3, y: -1, z: 0}
@@ -695,36 +711,72 @@ MonoBehaviour:
   - targetTime: 17.5
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 0
+    noteType: 2
   - targetTime: 17.625
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 17.75
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
-  - targetTime: 17.875
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 17.875
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
-  - targetTime: 18
-    lane: 0
-    targetPosition: {x: -3, y: -1, z: 0}
     noteType: 0
   - targetTime: 18
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 2
+    noteType: 0
   - targetTime: 18.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
-    noteType: 1
+    noteType: 0
   - targetTime: 18.25
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.25
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 18.375
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.375
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 18.5
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.625
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.75
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.875
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 19.125
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19.125
     lane: 1
     targetPosition: {x: 3, y: -1, z: 0}
     noteType: 2
