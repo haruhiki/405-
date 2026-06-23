@@ -2,12 +2,10 @@ using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-//Defineクラスをインクルード
-using static Define;
-
 public class GameSystem1 : MonoBehaviour
 {
-    Define _defineSO; //変数まとめてる-> SO =スクリプタブルオブジェクト
+    [SerializeField] Define _defineSO;         //変数まとめてる-> SO =スクリプタブルオブジェクト
+    [SerializeField] CharactorSO _charaSO;
 
     //シングルトンでシステム内の単一を保証
     //タイトルからリザルト(エンド)までシーン内においとく
@@ -30,12 +28,6 @@ public class GameSystem1 : MonoBehaviour
 
     void Start() { _defineSO = gameObject.GetComponent<Define>(); }
 
-    //常にゲームシステムクラスを常駐させ動かす
-    public SceneState SceneState { get; private set; }
-
-    //ゲームロジックを外部で動かすためのイベントステート
-    public event Action<SceneState> gameState;
-
 
     //ゲーム開始ロジック
     private void InGameStart() 
@@ -52,6 +44,20 @@ public class GameSystem1 : MonoBehaviour
             //全てのフラグを初期化
             _defineSO.Reset();
        }
+    }
+
+    private bool isGameOver() 
+    {
+        //キャラクター情報管理SOもしくは変数等の管理SOがない場合はじく
+        if(!_charaSO || !_defineSO) { return false; }
+
+        if(_charaSO.chCurrentState == true) 
+        {
+            return true;
+        }
+        
+
+        return true;
     }
 
   

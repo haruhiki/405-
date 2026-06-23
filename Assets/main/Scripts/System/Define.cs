@@ -1,25 +1,10 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "Define", menuName = "Scriptable Objects/Define")]
 public class Define : ScriptableObject
 {
-    [Header("ゲームロジック管理用")]
-    public bool isInGame;
-    public bool isSlideAnim;
-    public bool isEndGame;
-
-
-    [Header("操作検知用")]
-    public bool isInputDetected;
-    public bool isInputHold;
-    public bool isInputRush;
-
-    public Vector2 inputScreenPos;
-
-    [Header("操作検知時のアクション")]
-    Action TouchActionEvect; //操作時の各イベントをまとめて発行させる用
-
     //各シーンを適当に洗い出しておく
     //各シーンのステート管理
     public enum SceneState
@@ -31,6 +16,40 @@ public class Define : ScriptableObject
         Result,
     }
 
+
+    [Header("ゲームロジック管理用")]
+    public bool isInGame;
+    public bool isSlideAnim;
+    public bool isEndGame;
+
+
+    [Header("操作検知用")]
+    public bool isInputDetected;
+    public bool isInputHold;
+    public bool isInputRush;
+
+    public bool isRightKey;
+    public bool isLeftKey;
+
+    public Vector2 inputScreenPos;
+
+    [Header("操作検知時のアクション")]
+    public Action TouchActionEvect; //操作時の各イベントをまとめて発行させる用
+
+    //キャラクター処理時のキー判別用検知イベント
+    public event Action RightKeyEvent;
+    public event Action LeftKeyEvent;
+
+    //ゲームロジックを外部で動かすためのイベントステート
+    public event Action<SceneState> gameState;
+
+    //ゲームステートイベント内に格納されたイベントを講読する。
+    public void CallGameStateEvent(SceneState state) { gameState?.Invoke(state); }
+
+    //画面タッチ時のイベント処理を講読する。
+    public void CallTouchEvent() { TouchActionEvect?.Invoke(); }
+
+
     //初期化
     public void Reset()
     {
@@ -40,6 +59,8 @@ public class Define : ScriptableObject
         isEndGame = false;
         isInGame = false;
         isSlideAnim = false;
+        isRightKey = false;
+        isLeftKey = false;
         inputScreenPos = Vector2.zero;
     }
 
@@ -55,5 +76,16 @@ public class Define : ScriptableObject
         isInputDetected = down;
         isInputHold = stay;
         isInputRush = up;
+
+        CallTouchEvent();
+    }
+
+    public void SetInputKey(bool right,bool left) 
+    {
+        isRightKey = right;
+        isLeftKey = left;
+
+        if (left)  { LeftKeyEvent?.Invoke(); }
+        if (right) { RightKeyEvent?.Invoke(); }
     }
 }

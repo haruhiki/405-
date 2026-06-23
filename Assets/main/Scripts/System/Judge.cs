@@ -5,14 +5,16 @@ public class Judge : MonoBehaviour
 {
     [Header("設定")]
     [SerializeField] private int myLane; // 0:左, 1:右
-    [SerializeField] private float judgeRadius = 1.5f;    // 判定が有効な円の半径
-    [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
-    [SerializeField] private float greatWindow = 0.12f;   // 可の許容時間差
+    [SerializeField] private float judgeRadius = 1.5f;     // 判定が有効な円の半径
+    [SerializeField] private float perfectWindow = 0.05f;  // 良の許容時間差
+    [SerializeField] private float greatWindow = 0.12f;    // 可の許容時間差
+    [SerializeField] private float misstakeDamage = 10.0f; // ミス時に受けるダメージ量
 
     private float distance = 0;   //距離判定変数
 
     [Header("参照")]
     [SerializeField] private Define _defineSO;
+    [SerializeField] private CharactorSO _charaSO;
     private AudioSource audioSource;
 
     private bool isLongPress = false;
@@ -182,6 +184,10 @@ public class Judge : MonoBehaviour
             Debug.Log($"範囲外 誤差:{caluculateTimeDiff:F3}");
             //仮でMiss時にオブジェクト削除
             targetNote.OnMiss();
+
+            //TODO:仮置きでキャラミスしたときのダメージを置いておく
+            _charaSO.HPfluctuation(misstakeDamage);
+
         }
     }
 }
