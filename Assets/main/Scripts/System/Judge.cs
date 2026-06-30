@@ -15,6 +15,7 @@ public class Judge : MonoBehaviour
     [Header("参照")]
     [SerializeField] private Define _defineSO;
     [SerializeField] private CharactorSO _charaSO;
+    [SerializeField] private Charactor _charactor;
     private AudioSource audioSource;
 
     private bool isLongPress = false;
@@ -26,8 +27,7 @@ public class Judge : MonoBehaviour
     {
         if(_defineSO == null) { return; }
 
-        bool hasInput = _defineSO.isInputDetected || _defineSO.isInputHold || _defineSO.isInputRush;
-        if(!hasInput) { return; }
+        if(!_defineSO.HasInput) { return; }
 
         //座標変換
         float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
@@ -171,23 +171,43 @@ public class Judge : MonoBehaviour
         if (caluculateTimeDiff <= perfectWindow)
         {
             Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{caluculateTimeDiff:F3} 距離:{distance:F2}");
+            _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
+            MoveCharacterToNotePosition(targetNote.transform.position);
             targetNote.OnHit();
         }
         else if (caluculateTimeDiff <= greatWindow)
         {
             Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{caluculateTimeDiff:F3}");
+            _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
+            MoveCharacterToNotePosition(targetNote.transform.position);
             targetNote.OnHit();
         }
         else
         {
             //デバッグ用：タイミングが早すぎる・遅すぎる場合
             Debug.Log($"範囲外 誤差:{caluculateTimeDiff:F3}");
+            _defineSO.PlayNoteSE(targetNote.GetNoteType(), false);
             //仮でMiss時にオブジェクト削除
             targetNote.OnMiss();
 
-            //TODO:仮置きでキャラミスしたときのダメージを置いておく
-            _charaSO.HPfluctuation(misstakeDamage);
-
+            // ゲームシステム経由でダメージ処理を行う
+            if (GameSystem1.Instance != null)
+            {
+                GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage);
+            }
+            else if (_charaSO != null)
+            {
+                _charaSO.HPfluctuation(misstakeDamage);
+            }
         }
     }
+
+    private void MoveCharacterToNotePosition(Vector3 position)
+    {
+        if (_charactor != null)
+        {
+            _charactor.MoveToPoint(position);
+        }
+    }
+
 }

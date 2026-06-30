@@ -1,11 +1,11 @@
-using System;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class GameSystem1 : MonoBehaviour
 {
-    [SerializeField] Define _defineSO;         //変数まとめてる-> SO =スクリプタブルオブジェクト
-    [SerializeField] CharactorSO _charaSO;
+    [SerializeField] private Define _defineSO;         // 変数まとめてる -> SO = スクリプタブルオブジェクト
+    [SerializeField] private CharactorSO _charaSO;
+
+    public CharactorSO RuntimeCharaSO { get; private set; }
 
     //シングルトンでシステム内の単一を保証
     //タイトルからリザルト(エンド)までシーン内においとく
@@ -26,38 +26,62 @@ public class GameSystem1 : MonoBehaviour
     }
     #endregion
 
-    void Start() { _defineSO = gameObject.GetComponent<Define>(); }
-
-
-    //ゲーム開始ロジック
-    private void InGameStart() 
+    private void Start()
     {
-        _defineSO.isInGame = true;
-
-    }
-
-    //ゲーム終了ロジック
-    public void OutGameEnd() 
-    {
-       if(_defineSO.isEndGame == true) 
-       {
-            //全てのフラグを初期化
-            _defineSO.Reset();
-       }
-    }
-
-    private bool isGameOver() 
-    {
-        //キャラクター情報管理SOもしくは変数等の管理SOがない場合はじく
-        if(!_charaSO || !_defineSO) { return false; }
-
-        if(_charaSO.chCurrentState == true) 
+        if (_defineSO == null)
         {
-            return true;
+            Debug.LogWarning("[GameSystem1] Define SO が Inspector で設定されていません。");
         }
-        
 
-        return true;
+        if (_charaSO != null)
+        {
+            RuntimeCharaSO = Instantiate(_charaSO);
+            RuntimeCharaSO.ResetStatus();
+        }
+    }
+
+    // ゲーム開始ロジック
+    private void InGameStart()
+    {
+        if (_defineSO == null) return;
+        _defineSO.isInGame = true;
+    }
+
+    // ゲーム終了ロジック
+    public void OutGameEnd()
+    {
+        if (_defineSO != null && _defineSO.isEndGame)
+        {
+            // 全てのフラグを初期化
+            _defineSO.Reset();
+        }
+    }
+
+    public float ApplyDamageToCharacter(float damage)
+    {
+        if (RuntimeCharaSO != null)
+        {
+            RuntimeCharaSO.HPfluctuation(damage);
+            return RuntimeCharaSO.chHPpoint;
+        }
+
+        if (_charaSO != null)
+        {
+            _charaSO.HPfluctuation(damage);
+            return _charaSO.chHPpoint;
+        }
+
+        return 0f;
+    }
+
+    public bool IsGameOver()
+    {
+        if (RuntimeCharaSO != null)
+        {
+            return RuntimeCharaSO.chCurrentState;
+        }
+
+        return _charaSO != null && _charaSO.chCurrentState;
     }
 
   

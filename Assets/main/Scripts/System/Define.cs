@@ -33,6 +33,16 @@ public class Define : ScriptableObject
 
     public Vector2 inputScreenPos;
 
+    [Header("共通参照")]
+    public CharactorSO charactorSO;
+
+    [Header("SE設定")]
+    public string seCategory = "character";
+    public SESound.SEDATA shortHitSE = SESound.SEDATA.Tap;
+    public SESound.SEDATA longHitSE = SESound.SEDATA.character;
+    public SESound.SEDATA rushHitSE = SESound.SEDATA.Tap;
+    public SESound.SEDATA missSE = SESound.SEDATA.System;
+
     [Header("操作検知時のアクション")]
     public Action TouchActionEvect; //操作時の各イベントをまとめて発行させる用
 
@@ -87,5 +97,34 @@ public class Define : ScriptableObject
 
         if (left)  { LeftKeyEvent?.Invoke(); }
         if (right) { RightKeyEvent?.Invoke(); }
+    }
+
+    public bool HasInput => isInputDetected || isInputHold || isInputRush;
+
+    public void PlayNoteSE(NoteDate.NotesType noteType, bool hit)
+    {
+        if (AudioManager.Instance == null) return;
+
+        if (!hit)
+        {
+            AudioManager.Instance.PlaySE(seCategory, missSE);
+            return;
+        }
+
+        switch (noteType)
+        {
+            case NoteDate.NotesType.Short:
+                AudioManager.Instance.PlaySE(seCategory, shortHitSE);
+                break;
+            case NoteDate.NotesType.Long_Start:
+                AudioManager.Instance.PlaySE(seCategory, longHitSE);
+                break;
+            case NoteDate.NotesType.Rush:
+                AudioManager.Instance.PlaySE(seCategory, rushHitSE);
+                break;
+            default:
+                AudioManager.Instance.PlaySE(seCategory, shortHitSE);
+                break;
+        }
     }
 }

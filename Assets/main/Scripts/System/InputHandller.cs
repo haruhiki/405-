@@ -18,9 +18,9 @@ public class InputHandller : MonoBehaviour
         bool leftPressed = Keyboard.current.fKey.wasPressedThisFrame;
         bool rightPressed = Keyboard.current.jKey.wasPressedThisFrame;
 
-        if(rightPressed || leftPressed) 
+        if (_defineSO != null)
         {
-            ;
+            _defineSO.SetInputKey(rightPressed, leftPressed);
         }
 
         //左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
