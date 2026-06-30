@@ -37,7 +37,8 @@ public class Define : ScriptableObject
     public CharactorSO charactorSO;
 
     [Header("SEÝ’è")]
-    public string seCategory = "character";
+    public string seCategory = "SE_SoundTap";
+    public SESound.SEDATA inputSE = SESound.SEDATA.Tap;
     public SESound.SEDATA shortHitSE = SESound.SEDATA.Tap;
     public SESound.SEDATA longHitSE = SESound.SEDATA.character;
     public SESound.SEDATA rushHitSE = SESound.SEDATA.Tap;
@@ -90,7 +91,7 @@ public class Define : ScriptableObject
         CallTouchEvent();
     }
 
-    public void SetInputKey(bool right,bool left) 
+    public void SetInputKey(bool right,bool left)
     {
         isRightKey = right;
         isLeftKey = left;
@@ -100,6 +101,12 @@ public class Define : ScriptableObject
     }
 
     public bool HasInput => isInputDetected || isInputHold || isInputRush;
+
+    public void PlayInputSE()
+    {
+        if (AudioManager.Instance == null) return;
+        AudioManager.Instance.PlaySE(seCategory, inputSE);
+    }
 
     public void PlayNoteSE(NoteDate.NotesType noteType, bool hit)
     {

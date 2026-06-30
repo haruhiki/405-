@@ -12,5 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 383783ee150ed2a4788154e7464e09b2, type: 3}
   m_Name: Define
   m_EditorClassIdentifier: Assembly-CSharp::Define
-  isLeftTouch: 0
-  isRightTouch: 0
+  isInGame: 0
+  isSlideAnim: 0
+  isEndGame: 0
+  isInputDetected: 0
+  isInputHold: 0
+  isInputRush: 0
+  isRightKey: 0
+  isLeftKey: 0
+  inputScreenPos: {x: 96.156136, y: 16.3}
+  charactorSO: {fileID: 11400000, guid: f34891b6229402b4b96138c3035ca0f8, type: 2}
+  seCategory: SE_SoundTap
+  inputSE: 1
+  shortHitSE: 1
+  longHitSE: 0
+  rushHitSE: 1
+  missSE: 2

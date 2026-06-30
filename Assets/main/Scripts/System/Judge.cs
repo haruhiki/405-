@@ -116,34 +116,64 @@ public class Judge : MonoBehaviour
                 isLongPress = true;
                 currentLongNote = note;
                 note.SetHoldVisual(true);
+                
+                // ロングSEループ開始
+                AudioManager.Instance.PlayLoopSE(_defineSO.seCategory, _defineSO.longHitSE);
+                
                 Debug.Log("<color=cyan>【長押し開始】ホールド中...</color>");
             }
             return;
         }
 
-        // 途中で指を離してしまった場合のペナルティ（本物の長押しには必須！）
-        // 押し始めに成功しているのに、入力システムが「押しっぱなし(isInputHold)」を検知しなくなった場合
+        // ホールド中に指が離れた場合
         if (isLongPress && !_defineSO.isInputHold && !_defineSO.isInputRush)
         {
-            // 終了時間より圧倒的に手前で離したならコンボが切れて Miss になる
+            // SEループ停止
+            AudioManager.Instance.StopLoopSE();
+            
             float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
-            if (timeDiff > greatWindow)
+            
+            // 終了時間まであと少しなら成功判定を期待
+            if (timeDiff <= greatWindow)
             {
-                Debug.Log("<color=red>【長押し失敗】途中で指が離れました！</color>");
+                Debug.Log("<color=yellow>【長押し途中離し】判定待機中...</color>");
+                // ホールド解除のみ、まだノーツは消さない
                 note.SetHoldVisual(false);
-                note.OnMiss(); // ノーツ消滅（失敗）
                 isLongPress = false;
                 currentLongNote = null;
-
+                return;
+            }
+            else
+            {
+                // 終了時間より大幅に手前で離したなら失敗
+                Debug.Log("<color=red>【長押し失敗】途中で指が離れました！</color>");
+                note.SetHoldVisual(false);
+                note.OnMiss();
+                isLongPress = false;
+                currentLongNote = null;
+                
+                // ダメージ処理
+                if (GameSystem1.Instance != null)
+                {
+                    GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage);
+                }
+                else if (_charaSO != null)
+                {
+                    _charaSO.HPfluctuation(misstakeDamage);
+                }
                 return;
             }
         }
 
-         //離した時の判定（タイミングよく指を離した瞬間）
+        // 離した時の判定（タイミングよく指を離した瞬間）
         if (_defineSO.isInputRush && isLongPress)
         {
             float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
             Debug.Log($"【長押し完了】離し誤差: {timeDiff:F3}");
+            
+            // SEループ停止
+            AudioManager.Instance.StopLoopSE();
+            
             note.SetHoldVisual(false);
 
             JudgePass(note, timeDiff); // 成功判定なら OnHit() でノーツ消滅
@@ -172,14 +202,12 @@ public class Judge : MonoBehaviour
         {
             Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{caluculateTimeDiff:F3} 距離:{distance:F2}");
             _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
-            MoveCharacterToNotePosition(targetNote.transform.position);
             targetNote.OnHit();
         }
         else if (caluculateTimeDiff <= greatWindow)
         {
             Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{caluculateTimeDiff:F3}");
             _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
-            MoveCharacterToNotePosition(targetNote.transform.position);
             targetNote.OnHit();
         }
         else

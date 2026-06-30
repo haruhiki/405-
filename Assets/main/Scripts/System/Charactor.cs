@@ -11,10 +11,6 @@ public class Charactor : MonoBehaviour
     [SerializeField, Min(0.01f)] private float moveDuration = 0.12f;
     [SerializeField, Min(0f)] private float moveSpeedMultiplier = 1.6f;
 
-    [Header("SE設定")]
-    [SerializeField] private string seCategory = "character";
-    [SerializeField] private SESound.SEDATA moveSE = SESound.SEDATA.character;
-
     private Vector3 _startPosition;
     private Vector3 _targetPosition;
     private float _moveElapsed;
@@ -82,12 +78,5 @@ public class Charactor : MonoBehaviour
         _targetPosition = destination;
         _moveElapsed = 0f;
         _isMoving = true;
-        PlayMoveSE();
-    }
-
-    private void PlayMoveSE()
-    {
-        if (AudioManager.Instance == null) return;
-        AudioManager.Instance.PlaySE(seCategory, moveSE);
     }
 }

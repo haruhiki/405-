@@ -12,12 +12,15 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private List<SECategory> SECategorys;
 
     [Header("Volume管理")]
-    [SerializeField] public float masterVolume = 1.0f;
-    [SerializeField] public float bgmmasterVolume = 1.0f;
-    [SerializeField] public float semasterVolume = 1.0f;
+    [SerializeField, Range(0f, 1f)] public float masterVolume = 1.0f;
+    [SerializeField, Range(0f, 1f)] public float bgmmasterVolume = 1.0f;
+    [SerializeField, Range(0f, 1f)] public float semasterVolume = 1.0f;
 
     [Header("譜面作成・エディタ拡張機能")]
     [SerializeField] private AudioDataSO activeAudioData;  //現在選択されている楽曲データ
+
+    // ループSE用AudioSource
+    private AudioSource loopSESource;
 
 
     #region singleton
@@ -43,6 +46,22 @@ public class AudioManager : MonoBehaviour
         {
             LoadMusicData(activeAudioData);
         }
+
+        // LoopSE用AudioSourceの初期化
+        InitializeLoopSESource();
+    }
+
+    /// <summary>
+    /// ループSE用AudioSourceの初期化
+    /// </summary>
+    private void InitializeLoopSESource()
+    {
+        if (loopSESource != null) return;
+
+        GameObject loopSeObj = new GameObject("LoopSESource");
+        loopSeObj.transform.SetParent(transform);
+        loopSESource = loopSeObj.AddComponent<AudioSource>();
+        loopSESource.playOnAwake = false;
     }
 
     /// <summary> /// BGMの停止 /// </summary>
@@ -203,6 +222,134 @@ public class AudioManager : MonoBehaviour
         else
         {
             Debug.LogError("指定されたカテゴリが見つかりません。" + categoryName);
+        }
+    }
+
+    /// <summary>
+    /// ループSEを再生（ロングノーツ用）
+    /// </summary>
+    /// <param name="categoryName">カテゴリー名</param>
+    /// <param name="se">SE種類</param>
+    public void PlayLoopSE(string categoryName, SESound.SEDATA se)
+    {
+        if (loopSESource == null) InitializeLoopSESource();
+
+        SECategory category = SECategorys.Find(category => category.categoryName == categoryName);
+        if (category != null)
+        {
+            SESound data = category.sounds.Find(sound => sound.seData == se);
+            if (data != null)
+            {
+                loopSESource.clip = data.seclip;
+                loopSESource.volume = data.seVolume * masterVolume * semasterVolume;
+                loopSESource.loop = true;
+                loopSESource.Play();
+                Debug.Log($"【LoopSE開始】{categoryName} - {se}");
+            }
+            else
+            {
+                Debug.LogError("指定されたSEが見つかりません:" + se);
+            }
+        }
+        else
+        {
+            Debug.LogError("指定されたカテゴリが見つかりません。" + categoryName);
+        }
+    }
+
+    /// <summary>
+    /// ループSEを停止
+    /// </summary>
+    public void StopLoopSE()
+    {
+        if (loopSESource != null && loopSESource.isPlaying)
+        {
+            loopSESource.Stop();
+            loopSESource.clip = null;
+            Debug.Log("【LoopSE停止】");
+        }
+    }
+
+    /// <summary>
+    /// マスター音量を設定（BGMとSE両方に適用）
+    /// </summary>
+    /// <param name="volume">0.0 - 1.0</param>
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+        UpdateAllVolumes();
+        Debug.Log($"【マスター音量設定】{masterVolume:F2}");
+    }
+
+    /// <summary>
+    /// BGM音量を設定
+    /// </summary>
+    /// <param name="volume">0.0 - 1.0</param>
+    public void SetBGMVolume(float volume)
+    {
+        bgmmasterVolume = Mathf.Clamp01(volume);
+        UpdateBGMVolume();
+        Debug.Log($"【BGM音量設定】{bgmmasterVolume:F2}");
+    }
+
+    /// <summary>
+    /// SE音量を設定
+    /// </summary>
+    /// <param name="volume">0.0 - 1.0</param>
+    public void SetSEVolume(float volume)
+    {
+        semasterVolume = Mathf.Clamp01(volume);
+        UpdateSEVolume();
+        Debug.Log($"【SE音量設定】{semasterVolume:F2}");
+    }
+
+    /// <summary>
+    /// 現在のマスター音量を取得
+    /// </summary>
+    public float GetMasterVolume() => masterVolume;
+
+    /// <summary>
+    /// 現在のBGM音量を取得
+    /// </summary>
+    public float GetBGMVolume() => bgmmasterVolume;
+
+    /// <summary>
+    /// 現在のSE音量を取得
+    /// </summary>
+    public float GetSEVolume() => semasterVolume;
+
+    /// <summary>
+    /// すべての音声の音量を更新
+    /// </summary>
+    private void UpdateAllVolumes()
+    {
+        UpdateBGMVolume();
+        UpdateSEVolume();
+    }
+
+    /// <summary>
+    /// BGMの音量を更新（現在再生中なら即座に反映）
+    /// </summary>
+    private void UpdateBGMVolume()
+    {
+        if (BGMSoruce != null)
+        {
+            BGMSoruce.volume = masterVolume * bgmmasterVolume;
+        }
+    }
+
+    /// <summary>
+    /// SEの音量を更新（現在再生中なら即座に反映）
+    /// </summary>
+    private void UpdateSEVolume()
+    {
+        if (SESource != null)
+        {
+            SESource.volume = masterVolume * semasterVolume;
+        }
+        if (loopSESource != null)
+        {
+            loopSESource.volume = masterVolume * semasterVolume;
         }
     }
 

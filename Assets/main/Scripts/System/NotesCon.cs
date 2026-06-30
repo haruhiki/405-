@@ -166,10 +166,12 @@ public class NotesCon : MonoBehaviour
         trailObject.localScale = localScale;
     }
 
-    public void SetHoldVisual(bool isHolding)
+    public void SetHoldVisual(bool holding)
     {
+        isHolding = holding; // フラグも更新
+        
         if (spriteRenderer == null) return;
-        if (isHolding)
+        if (holding)
         {
             spriteRenderer.color = new Color(1f, 0.92f, 0.016f, 0.6f);
         }
@@ -182,7 +184,7 @@ public class NotesCon : MonoBehaviour
         // 帯（ボディ）の色を変化（もしアタッチされていれば）
         if (trailRenderer != null)
         {
-            if (isHolding)
+            if (holding)
             {
                 trailRenderer.color = new Color(1f, 0.92f, 0.016f, 0.6f);
             }

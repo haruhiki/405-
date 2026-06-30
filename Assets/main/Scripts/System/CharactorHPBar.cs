@@ -5,16 +5,16 @@ public class CharactorHPBar : MonoBehaviour
 {
     [Header("参照")]
     [SerializeField] private CharactorSO _charaSO;
-    [SerializeField] private Slider _hpSlider;
+    [SerializeField] private Image _hpImage;
     [SerializeField] private bool useGameSystemRuntime = true;
 
     private CharactorSO _activeSo;
 
     private void Start()
     {
-        if (_hpSlider == null)
+        if (_hpImage == null)
         {
-            Debug.LogWarning("[CharactorHPBar] Slider が Inspector で設定されていません。");
+            Debug.LogWarning("[CharactorHPBar] Image が Inspector で設定されていません。");
             enabled = false;
             return;
         }
@@ -35,9 +35,7 @@ public class CharactorHPBar : MonoBehaviour
             return;
         }
 
-        _hpSlider.minValue = 0f;
-        _hpSlider.maxValue = 1f;
-        _hpSlider.value = _activeSo.CurrentHPNormalized;
+        UpdateHPBar(_activeSo.CurrentHPNormalized);
         _activeSo.OnHPChanged += HandleHPChanged;
     }
 
@@ -51,9 +49,14 @@ public class CharactorHPBar : MonoBehaviour
 
     private void HandleHPChanged(float normalizedValue)
     {
-        if (_hpSlider != null)
+        UpdateHPBar(normalizedValue);
+    }
+
+    private void UpdateHPBar(float normalizedValue)
+    {
+        if (_hpImage != null)
         {
-            _hpSlider.value = normalizedValue;
+            _hpImage.fillAmount = Mathf.Clamp01(normalizedValue);
         }
     }
 
@@ -69,7 +72,7 @@ public class CharactorHPBar : MonoBehaviour
         if (_activeSo != null)
         {
             _activeSo.OnHPChanged += HandleHPChanged;
-            _hpSlider.value = _activeSo.CurrentHPNormalized;
+            UpdateHPBar(_activeSo.CurrentHPNormalized);
         }
     }
 }

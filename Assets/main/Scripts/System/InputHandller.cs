@@ -21,6 +21,10 @@ public class InputHandller : MonoBehaviour
         if (_defineSO != null)
         {
             _defineSO.SetInputKey(rightPressed, leftPressed);
+            if (rightPressed || leftPressed)
+            {
+                _defineSO.PlayInputSE();
+            }
         }
 
         //左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
