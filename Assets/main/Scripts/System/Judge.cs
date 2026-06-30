@@ -16,6 +16,8 @@ public class Judge : MonoBehaviour
     [SerializeField] private Define _defineSO;
     [SerializeField] private CharactorSO _charaSO;
     [SerializeField] private Charactor _charactor;
+    [SerializeField] private Transform leftTargetCircle;
+    [SerializeField] private Transform rightTargetCircle;
     private AudioSource audioSource;
 
     private bool isLongPress = false;
@@ -29,14 +31,28 @@ public class Judge : MonoBehaviour
 
         if(!_defineSO.HasInput) { return; }
 
+        // キー入力かタッチ入力か判定
+        bool isKeyInput = _defineSO.isRightKey || _defineSO.isLeftKey;
+        
+        Vector3 judgePos = transform.position;
+        
+        // キー入力の場合は判定円の位置を直接使用
+        if (isKeyInput)
+        {
+            if (myLane == 0 && leftTargetCircle != null)
+                judgePos = leftTargetCircle.position;
+            else if (myLane == 1 && rightTargetCircle != null)
+                judgePos = rightTargetCircle.position;
+        }
+
         //座標変換
-        float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
+        float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - judgePos.z);
         Vector3 screenPosWithDepth = new Vector3(_defineSO.inputScreenPos.x, _defineSO.inputScreenPos.y, camToPlaneDist);
         Vector3 touchWorldPos = Camera.main.ScreenToWorldPoint(screenPosWithDepth);
         touchWorldPos.z = 0;
 
         //距離判定
-        distance = Vector2.Distance(touchWorldPos, transform.position);
+        distance = Vector2.Distance(touchWorldPos, judgePos);
         if (distance > judgeRadius)
         {
             if (_defineSO.isInputDetected) 
@@ -48,7 +64,7 @@ public class Judge : MonoBehaviour
 
         //このレーンのノーツを取得
         NotesCon targetNote = isLongPress ? currentLongNote : GetNearestNote();
-        if (targetNote == null) {return; }
+        if (targetNote == null) { return; }
 
         //ノーツの判定
         switch (targetNote.GetNoteType())
@@ -72,19 +88,28 @@ public class Judge : MonoBehaviour
     NotesCon GetNearestNote()
     {
         NotesCon[] notes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
+        Debug.Log($"[Judge] シーン内のノーツ数: {notes.Length}");
+        
         NotesCon best = null;
         float minDiff = 0.5f; // 0.5秒以上離れているものは対象外
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
 
         foreach (var n in notes)
         {
-            if (n.GetLane() != myLane) continue;
-            float diff = Mathf.Abs(n.GetTargetTime() - audioSource.time);
+            if (n.GetLane() != myLane)
+            {
+                Debug.Log($"[Judge] ノーツのレーン {n.GetLane()} は対象外（myLane: {myLane}）");
+                continue;
+            }
+            float diff = Mathf.Abs(n.GetTargetTime() - currentTime);
+            Debug.Log($"[Judge] ノーツ見つかった: targetTime={n.GetTargetTime():F3}, currentTime={currentTime:F3}, diff={diff:F3}");
             if (diff < minDiff)
             {
                 minDiff = diff;
                 best = n;
             }
         }
+        Debug.Log($"[Judge] 最終選択ノーツ: {(best != null ? "有" : "無")} (minDiff={minDiff:F3})");
         return best;
     }
 
@@ -92,24 +117,32 @@ public class Judge : MonoBehaviour
     /// <param name="note"> ノーツタイプがshort</param>
     void ProcessShortHit(NotesCon note)
     {
-        float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
+        float diff = Mathf.Abs(note.GetTargetTime() - currentTime);
+        Debug.Log($"[Judge] Short 判定: diff={diff:F3}, greatWindow={greatWindow}");
         if (diff <= greatWindow)
         {
+            Debug.Log($"[Judge] Short 判定範囲内！JudgePass呼び出し");
             // 成功なら消す
             //判定パス
             JudgePass(note,diff);
         }
-      
+        else
+        {
+            Debug.Log($"[Judge] Short 判定範囲外");
+        }
     }
 
     /// <summary> /// 長押し /// </summary>
     /// <param name="note"> noteTypeがLongの場合 </param>
     void ProcessLongHit(NotesCon note)
     {
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
+        
         // 押し始めの判定（キーが新しく押された瞬間）
         if (_defineSO.isInputDetected && !isLongPress)
         {
-            float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+            float timeDiff = Mathf.Abs(note.GetTargetTime() - currentTime);
 
             if (timeDiff <= greatWindow)
             {
@@ -117,8 +150,18 @@ public class Judge : MonoBehaviour
                 currentLongNote = note;
                 note.SetHoldVisual(true);
                 
-                // ロングSEループ開始
-                AudioManager.Instance.PlayLoopSE(_defineSO.seCategory, _defineSO.longHitSE);
+                try
+                {
+                    // ロングSEループ開始
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlayLoopSE(_defineSO.seCategory, _defineSO.longHitSE);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[Judge] SE再生エラー: {ex.Message}");
+                }
                 
                 Debug.Log("<color=cyan>【長押し開始】ホールド中...</color>");
             }
@@ -128,10 +171,20 @@ public class Judge : MonoBehaviour
         // ホールド中に指が離れた場合
         if (isLongPress && !_defineSO.isInputHold && !_defineSO.isInputRush)
         {
-            // SEループ停止
-            AudioManager.Instance.StopLoopSE();
+            try
+            {
+                // SEループ停止
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.StopLoopSE();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Judge] SE停止エラー: {ex.Message}");
+            }
             
-            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
+            float timeDiff = Mathf.Abs(note.GetEndTime() - currentTime);
             
             // 終了時間まであと少しなら成功判定を期待
             if (timeDiff <= greatWindow)
@@ -168,11 +221,21 @@ public class Judge : MonoBehaviour
         // 離した時の判定（タイミングよく指を離した瞬間）
         if (_defineSO.isInputRush && isLongPress)
         {
-            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
+            float timeDiff = Mathf.Abs(note.GetEndTime() - currentTime);
             Debug.Log($"【長押し完了】離し誤差: {timeDiff:F3}");
             
-            // SEループ停止
-            AudioManager.Instance.StopLoopSE();
+            try
+            {
+                // SEループ停止
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.StopLoopSE();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Judge] SE停止エラー: {ex.Message}");
+            }
             
             note.SetHoldVisual(false);
 
@@ -187,7 +250,8 @@ public class Judge : MonoBehaviour
     /// <param name="note"> noteTypeがラッシュの際のみ　</param>
     void ProcessRushHit(NotesCon note)
     {
-       float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+       float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
+       float timeDiff = Mathf.Abs(note.GetTargetTime() - currentTime);
         Debug.Log("Rush Tap!");
         JudgePass(note,timeDiff);
     }
@@ -196,6 +260,8 @@ public class Judge : MonoBehaviour
     private void JudgePass(NotesCon targetNote, float caluculateTimeDiff) 
     {
         if (targetNote == null) { return; }
+
+        Debug.Log($"[Judge] JudgePass呼び出し: timeDiff={caluculateTimeDiff:F3}, perfectWindow={perfectWindow}, greatWindow={greatWindow}");
 
         //判定
         if (caluculateTimeDiff <= perfectWindow)

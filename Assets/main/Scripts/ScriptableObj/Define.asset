@@ -20,11 +20,11 @@ MonoBehaviour:
   isInputRush: 0
   isRightKey: 0
   isLeftKey: 0
-  inputScreenPos: {x: 96.156136, y: 16.3}
+  inputScreenPos: {x: 95.34369, y: 16.199999}
   charactorSO: {fileID: 11400000, guid: f34891b6229402b4b96138c3035ca0f8, type: 2}
   seCategory: SE_SoundTap
   inputSE: 1
   shortHitSE: 1
-  longHitSE: 0
+  longHitSE: 1
   rushHitSE: 1
-  missSE: 2
+  missSE: 1
