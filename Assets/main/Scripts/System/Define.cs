@@ -9,11 +9,11 @@ public class Define : ScriptableObject
     //各シーンのステート管理
     public enum SceneState
     {
-        Title,
-        Load,
-        Select,
-        Game,
-        Result,
+        Title,    //0
+        Load,     //1
+        Select,   //2
+        Game,     //3
+        Result,   //4
     }
 
 

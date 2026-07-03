@@ -20,10 +20,11 @@ public class NotesCon : MonoBehaviour
     // 色変化用のレンダラー
     [SerializeField] private SpriteRenderer headRend, TailRend;
 
-    private float notesSpeed = 5.0f;
+    private float calculatedSpeed = 5.0f;  // 計算されたデフォルトスピード
+    private float notesSpeed = 5.0f;       // 実際に使用されるスピード（倍率が適用される）
+    [SerializeField] private float noteSpeedMultiplier = 1.0f; // UIから調整可能な倍率（デフォルト=1.0）
+    
     private bool isHolding = false;
-
-    // ? 【追加】多重Destroyによるフリーズ・ゾンビ化を防ぐための削除フラグ
     private bool _isDestroyed = false;
 
     private void Start()
@@ -49,9 +50,12 @@ public class NotesCon : MonoBehaviour
         spawnPos = transform.position;
         startTime = myData.targetTime - moveDuration;
 
-        // 生成位置と目的地の距離からノーツスピード計算
+        // 生成位置と目的地の距離からノーツスピード計算（デフォルト値）
         float distance = Vector3.Distance(spawnPos, targetWorldPos);
-        notesSpeed = distance / moveDuration;
+        calculatedSpeed = distance / moveDuration;
+        
+        // 倍率を適用したスピードを算出
+        notesSpeed = calculatedSpeed * noteSpeedMultiplier;
 
         isInitialized = true;
 
@@ -76,8 +80,6 @@ public class NotesCon : MonoBehaviour
     {
         if (!isInitialized) return;
         if (AudioManager.Instance == null) return;
-        
-        // ? すでに破棄フラグが立っているなら、このフレームのUpdate処理はすべてスキップ
         if (_isDestroyed) return;
 
         float currentTime = AudioManager.Instance.GetCurrentTime();
@@ -136,13 +138,10 @@ public class NotesCon : MonoBehaviour
     /// <summary> /// ノーツヒット時（成功） /// </summary>
     public void OnHit()
     {
-        // ? 多重呼び出しガード（フレーム内連打のシャットアウト）
         if (_isDestroyed) return;
         _isDestroyed = true;
 
         Debug.Log($"<color=green>[NotesCon] OnHitを実行。オブジェクトを完全に破棄します: {gameObject.name}</color>");
-
-        // ? 描画ゾンビ化対策：Destroyが完了する前に全ての画像を物理的に非表示にする
         HideAllRenderers();
 
         // プレハブの最親（LongNotes）を取得して一網打尽に削除
@@ -235,4 +234,20 @@ public class NotesCon : MonoBehaviour
 
     /// <summary> /// ノーツタイプを取得 /// </summary>
     public NoteDate.NotesType GetNoteType() => myData.noteType;
+
+    /// <summary>
+    /// ノーツスピード倍率をUIから変更
+    /// </summary>
+    /// <param name="multiplier">倍率（1.0=デフォルト, 1.2=20%速く, 0.8=20%遅く）</param>
+    public void SetNoteSpeedMultiplier(float multiplier)
+    {
+        noteSpeedMultiplier = Mathf.Max(0.1f, multiplier); // 最小値は0.1に制限
+        notesSpeed = calculatedSpeed * noteSpeedMultiplier;
+        Debug.Log($"<color=yellow>[NotesCon] スピード倍率: {noteSpeedMultiplier:F2}x → notesSpeed: {notesSpeed:F2}</color>");
+    }
+
+    /// <summary>
+    /// 現在のノーツスピード倍率を取得
+    /// </summary>
+    public float GetNoteSpeedMultiplier() => noteSpeedMultiplier;
 }
