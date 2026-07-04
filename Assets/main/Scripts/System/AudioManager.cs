@@ -168,9 +168,7 @@ public class AudioManager : MonoBehaviour
     public float GetCurrentPitch() => BGMSoruce != null ? BGMSoruce.pitch : 1.0f;
     public AudioDataSO GetActiveMusicData() => activeAudioData;
 
-    /// <summary>
-    /// SEを再生
-    /// </summary>
+    /// <summary> /// SEを再生 /// </summary>
     /// <param name="categoryName"></param>
     /// <param name="se"></param>
     public void PlaySE(string categoryName, SESound.SEDATA se)
@@ -198,9 +196,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// SEカテゴリー内のSEを再生
-    /// </summary>
+    /// <summary> /// SEカテゴリー内のSEを再生 /// </summary>
     /// <param name="categoryName"></param>
     /// <param name="index"></param>
     public void PlayspecificSE(string categoryName, int index)
@@ -225,9 +221,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ループSEを再生（ロングノーツ用）
-    /// </summary>
+    /// <summary> /// ループSEを再生（ロングノーツ用） /// </summary>
     /// <param name="categoryName">カテゴリー名</param>
     /// <param name="se">SE種類</param>
     public void PlayLoopSE(string categoryName, SESound.SEDATA se)
@@ -257,9 +251,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ループSEを停止
-    /// </summary>
+    /// <summary> /// ループSEを停止 /// </summary>
     public void StopLoopSE()
     {
         if (loopSESource != null && loopSESource.isPlaying)
@@ -270,9 +262,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// マスター音量を設定（BGMとSE両方に適用）
-    /// </summary>
+    /// <summary> /// マスター音量を設定（BGMとSE両方に適用）/// </summary>
     /// <param name="volume">0.0 - 1.0</param>
     public void SetMasterVolume(float volume)
     {
@@ -281,9 +271,7 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"【マスター音量設定】{masterVolume:F2}");
     }
 
-    /// <summary>
-    /// BGM音量を設定
-    /// </summary>
+    /// <summary> /// BGM音量を設定 /// </summary>
     /// <param name="volume">0.0 - 1.0</param>
     public void SetBGMVolume(float volume)
     {
@@ -292,9 +280,7 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"【BGM音量設定】{bgmmasterVolume:F2}");
     }
 
-    /// <summary>
-    /// SE音量を設定
-    /// </summary>
+    /// <summary> /// SE音量を設定 /// </summary>
     /// <param name="volume">0.0 - 1.0</param>
     public void SetSEVolume(float volume)
     {
@@ -303,33 +289,23 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"【SE音量設定】{semasterVolume:F2}");
     }
 
-    /// <summary>
-    /// 現在のマスター音量を取得
-    /// </summary>
+    /// <summary> /// 現在のマスター音量を取得 /// </summary>
     public float GetMasterVolume() => masterVolume;
 
-    /// <summary>
-    /// 現在のBGM音量を取得
-    /// </summary>
+    /// <summary> /// 現在のBGM音量を取得 /// </summary>
     public float GetBGMVolume() => bgmmasterVolume;
 
-    /// <summary>
-    /// 現在のSE音量を取得
-    /// </summary>
+    /// <summary> /// 現在のSE音量を取得  /// </summary>
     public float GetSEVolume() => semasterVolume;
 
-    /// <summary>
-    /// すべての音声の音量を更新
-    /// </summary>
+    /// <summary> /// すべての音声の音量を更新 /// </summary>
     private void UpdateAllVolumes()
     {
         UpdateBGMVolume();
         UpdateSEVolume();
     }
 
-    /// <summary>
-    /// BGMの音量を更新（現在再生中なら即座に反映）
-    /// </summary>
+    /// <summary> /// BGMの音量を更新（現在再生中なら即座に反映）/// </summary>
     private void UpdateBGMVolume()
     {
         if (BGMSoruce != null)
@@ -338,9 +314,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// SEの音量を更新（現在再生中なら即座に反映）
-    /// </summary>
+    /// <summary> /// SEの音量を更新（現在再生中なら即座に反映） /// </summary>
     private void UpdateSEVolume()
     {
         if (SESource != null)

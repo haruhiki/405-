@@ -1217,12 +1217,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Judge
   myLane: 1
-  judgeRadius: 1.5
   perfectWindow: 0.05
   greatWindow: 0.12
+  badWindow: 0.2
   misstakeDamage: 10
   _defineSO: {fileID: 11400000, guid: c61afc45d5d1dc543a49268dafdea2e6, type: 2}
-  _charaSO: {fileID: 11400000, guid: f34891b6229402b4b96138c3035ca0f8, type: 2}
   _charactor: {fileID: 1272976800}
 --- !u!1 &655431278
 GameObject:
@@ -2028,12 +2027,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Judge
   myLane: 0
-  judgeRadius: 1.5
   perfectWindow: 0.05
   greatWindow: 0.12
+  badWindow: 0.2
   misstakeDamage: 10
   _defineSO: {fileID: 11400000, guid: c61afc45d5d1dc543a49268dafdea2e6, type: 2}
-  _charaSO: {fileID: 11400000, guid: f34891b6229402b4b96138c3035ca0f8, type: 2}
   _charactor: {fileID: 1272976800}
 --- !u!224 &1234645697 stripped
 RectTransform:

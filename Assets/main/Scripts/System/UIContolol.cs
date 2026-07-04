@@ -1,53 +1,54 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIContolol : MonoBehaviour
 {
-    private bool isUIEnabled = false;
+private bool isUIEnabled = false;
 
     [Header("参照")]
-    
     [SerializeField] private GameObject _uiObject;
     [SerializeField] private AudioManager _audioManager;
     [SerializeField] private Define _defineSO; 
     [SerializeField] private SceneManage _sceneManage;
 
-    [Heder("インスペクターで設定調整")]
+    /// <summary> /// ノーツスピードスライダーの設定 /// </summary>
     [System.Serializable]
-    struct SliderSettings
+    public struct SliderSettings 
     {
-        [SereializeField] private float minValue; 
-        [SereializeField] private float maxValue;
-        [SereializeField] private float defaultValue;
+        [SerializeField] public float minValue; 
+        [SerializeField] public float maxValue;
+        [SerializeField] public float defaultValue;
     }
     
-    /// <summary> /// ノーツスピードスライダーの設定　/// </summary>
-    [SerializeField] SliderSettings _noteSpeedSliderSettings;
+    /// <summary> /// ノーツスピードスライダーの設定 /// </summary>
+    [SerializeField] private SliderSettings _noteSpeedSliderSettings;
 
-
-    [Heder("UI用ボタン")]
-    [SerializeField] private Button _button;    //楽曲選曲画面に戻るボタン
-    [SerializeField] private Button _button2;   //ゲーム終了するボタン
+    [Header("UI用ボタン/スライダー")]
+    [SerializeField] private Button _button;         // 楽曲選曲画面に戻るボタン
+    [SerializeField] private Button _button2;        // ゲーム終了するボタン
     [SerializeField] private Slider _bgmSlider;
     [SerializeField] private Slider _seSlider;
-    [SerializeField] private Slider _noteSpeedSlider;  // ノーツスピード倍率調整用スライダー
+    [SerializeField] private Slider _noteSpeedSlider; // ノーツスピード倍率調整用スライダー
 
+    // 🚀【追加】現在のスピード倍率を保存する変数（新しく生成されるノーツ用）
+    private float _currentNoteSpeedMultiplier = 1.0f;
+    public float CurrentNoteSpeedMultiplier => _currentNoteSpeedMultiplier;
 
     void Start()
     {
-        //ボタンにイベントを追加する
-        _button.onClick.AddListener(ReturnToScene);
-        _button2.onClick.AddListener(ExitGame);
+        // ボタンにイベントを追加する
+        if (_button != null) _button.onClick.AddListener(ReturnToScene);
+        if (_button2 != null) _button2.onClick.AddListener(ExitGame);
 
         // ノーツスピードスライダーの初期設定
         SliderDefoSet(); 
-        
     }
 
     private void OnDestroy()
     {
-        //ボタンのイベントを解除する -> メモリリークを防ぐため
-        _button.onClick.RemoveListener(ReturnToScene);
-        _button2.onClick.RemoveListener(ExitGame);
+        // ボタンのイベントを解除する -> メモリリークを防ぐため
+        if (_button != null) _button.onClick.RemoveListener(ReturnToScene);
+        if (_button2 != null) _button2.onClick.RemoveListener(ExitGame);
         
         // ノーツスピードスライダーのイベントを解除
         if (_noteSpeedSlider != null)
@@ -55,31 +56,29 @@ public class UIContolol : MonoBehaviour
             _noteSpeedSlider.onValueChanged.RemoveListener(AdjustNoteSpeed);
         }
     }
-    // Update is called once per frame
+
     void Update()
     {
-        //UIの表示・非表示を切り替える処理
+       // UIの表示・非表示を切り替える処理
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             ToggleUI();
+            if (_audioManager == null) return;
+
             if (isUIEnabled)
             {
-                //UIが表示されている場合、BGMを一時停止する
-                _audioManager.PauseBGM();
-                Time.timeScale = 0f; // ゲームの時間を停止
+                _audioManager.BGMPause();
+                Time.timeScale = 0f;  //ゲームの時間を停止
             }
             else
             {
-                //UIが非表示の場合、BGMを再開する
-                _audioManager.ResumeBGM();
-                Time.timeScale = 1f; // ゲームの時間を再開
+                _audioManager.BGMauPause();
+                Time.timeScale = 1f;  //ゲームの時間を再開
             }
         }
-
-
     }
 
-   //UIの表示・非表示を切り替えるメソッド
+    // UIの表示・非表示を切り替えるメソッド
     public void ToggleUI()
     {
         if (_uiObject != null)
@@ -89,96 +88,75 @@ public class UIContolol : MonoBehaviour
         }
     }
 
-    //UIの表示状態を取得するメソッド
-    public bool IsUIEnabled()
-    {
-        return isUIEnabled;
-    }
+    // UIの表示状態を取得するメソッド
+    public bool IsUIEnabled() => isUIEnabled;
 
-    //AudioMangarから音量を取得するメソッド
-    //スライダーで調整できるようにするために使用する
+    // AudioManagerから音量を取得するメソッド
     public float GetBGMVolume()
     {
-        if (_audioManager != null)
-        {
-            return _audioManager.bgmmasterVolume;
-        }
-        return 1.0f; // デフォルトの音量を返す
+        return _audioManager != null ? _audioManager.bgmmasterVolume : 1.0f;
     }
 
-    //SE,BGMの音量を取得するために使用する
     public float GetMasterVolume()
     {
-        if (_audioManager != null)
-        {
-            return _audioManager.masterVolume;
-        }
-        return 1.0f; // デフォルトの音量を返す
+        return _audioManager != null ? _audioManager.masterVolume : 1.0f;
     }
 
-    //タイトル画面への遷移処理
+    // タイトル画面への遷移処理
     public void ReturnToScene()
     {
-        //フラグ変更
         if (_defineSO != null)
         {
             _defineSO.isEndGame = true;
             _defineSO.isInGame = false;
-            Time.timeScale = 1f; // ゲームの時間を再開
+            Time.timeScale = 1f; 
         }
 
-        //シーン遷移処理を呼び出す
         if (_sceneManage != null)
         {
-            // 1はタイトルシーンのインデックス
-            _sceneManage.ChangeScene(1); 
+            _sceneManage.SceneChange(1); // 1はタイトルシーンのインデックス
         }
     }
 
-    //ゲーム終了処理
+    // ゲーム終了処理
     public void ExitGame()
     {
-        //アプリケーションを終了する
         Application.Quit();        
     }
 
-    //ノーツ降下スピード調整
+    // ノーツ降下スピード調整
     private void AdjustNoteSpeed(float multiplier)
     {
+        _currentNoteSpeedMultiplier = multiplier;
+
         // シーン内のすべてのNoteConオブジェクトを取得
         NotesCon[] allNotes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
         
-        if (allNotes.Length == 0)
-        {
-            Debug.LogWarning("[UIControl] シーン内にNoteConが見つかりません");
-            return;
-        }
-        
-        // すべてのノーツに倍率を適用
+        // すべてのノーツに倍率を即座に適用（もしあれば）
         foreach (NotesCon note in allNotes)
         {
-            note.SetNoteSpeedMultiplier(multiplier);
+            // 💡 NoteCon側にこのメソッドを実装して、スピードにかける設計にすると完璧だぜ！
+            // note.SetNoteSpeedMultiplier(multiplier); 
         }
         
-        Debug.Log($"<color=cyan>[UIControl] ノーツスピード倍率を {multiplier:F2}x に変更（{allNotes.Length}個のノーツに適用）</color>");
+        Debug.Log($"<color=cyan>[UIControl] ノーツスピード倍率を {multiplier:F2}x に変更</color>");
     }
 
     // ノーツスピードスライダーの初期設定
-    private  void SliderDefoSet()
+    private void SliderDefoSet()
     {
-        //スライダー構造体の初期値を設定
-        _noteSpeedSliderSettings.minValue = 0.1f; // 最小値
-        _noteSpeedSliderSettings.maxValue = 3.0f; // 最大値
-        _noteSpeedSliderSettings.defaultValue = 1.0f; // デフォルト値
-
         // ノーツスピードスライダーのイベント設定
         if (_noteSpeedSlider != null)
         {
-            // スライダーの初期値を1.0（デフォルト）に設定
+            // インスペクターで設定した構造体の値をスライダーに同期
             _noteSpeedSlider.minValue = _noteSpeedSliderSettings.minValue;
             _noteSpeedSlider.maxValue = _noteSpeedSliderSettings.maxValue;
             _noteSpeedSlider.value = _noteSpeedSliderSettings.defaultValue;
 
+            // 初期値を反映
+            _currentNoteSpeedMultiplier = _noteSpeedSliderSettings.defaultValue;
+
+            // リスナー登録
             _noteSpeedSlider.onValueChanged.AddListener(AdjustNoteSpeed);
         }
     }
