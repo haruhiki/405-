@@ -2,21 +2,36 @@ using UnityEngine;
 
 public class GameSystem1 : MonoBehaviour
 {
-    [SerializeField] private Define _defineSO;         // •Ï”‚Ü‚Æ‚ß‚Ä‚é -> SO = ƒXƒNƒŠƒvƒ^ƒuƒ‹ƒIƒuƒWƒFƒNƒg
+    [SerializeField] private Define _defineSO;         // ï¿½Ïï¿½ï¿½Ü‚Æ‚ß‚Ä‚ï¿½ -> SO = ï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½^ï¿½uï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½g
     [SerializeField] private CharactorSO _charaSO;
 
     public CharactorSO RuntimeCharaSO { get; private set; }
 
-    //ƒVƒ“ƒOƒ‹ƒgƒ“‚ÅƒVƒXƒeƒ€“à‚Ì’Pˆê‚ğ•ÛØ
-    //ƒ^ƒCƒgƒ‹‚©‚çƒŠƒUƒ‹ƒg(ƒGƒ“ƒh)‚Ü‚ÅƒV[ƒ““à‚É‚¨‚¢‚Æ‚­
+    public float CurrentHPPercent => RuntimeCharaSO != null ? RuntimeCharaSO.CurrentHPNormalized : (_charaSO != null ? _charaSO.CurrentHPNormalized : 0f);
+
+    //ï¿½Vï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ÅƒVï¿½Xï¿½eï¿½ï¿½ï¿½ï¿½ï¿½Ì’Pï¿½ï¿½ï¿½Ûï¿½
+    //ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ï¿½çƒŠï¿½Uï¿½ï¿½ï¿½g(ï¿½Gï¿½ï¿½ï¿½h)ï¿½Ü‚ÅƒVï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½
     #region singleton
-    public static GameSystem1 Instance { get; private set; }
+    private static GameSystem1 _instance;
+    public static GameSystem1 Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                GameObject go = new GameObject("GameSystem1");
+                _instance = go.AddComponent<GameSystem1>();
+            }
+            return _instance;
+        }
+        private set => _instance = value;
+    }
 
     private void Awake()
     {
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -30,29 +45,38 @@ public class GameSystem1 : MonoBehaviour
     {
         if (_defineSO == null)
         {
-            Debug.LogWarning("[GameSystem1] Define SO ‚ª Inspector ‚Åİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+            Debug.LogWarning("[GameSystem1] Define SO ï¿½ï¿½ Inspector ï¿½Åİ’è‚³ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B");
         }
 
+        ResetRuntimeCharacter();
+    }
+
+    public void ResetRuntimeCharacter()
+    {
         if (_charaSO != null)
         {
             RuntimeCharaSO = Instantiate(_charaSO);
             RuntimeCharaSO.ResetStatus();
         }
+        else
+        {
+            RuntimeCharaSO = null;
+        }
     }
 
-    // ƒQ[ƒ€ŠJnƒƒWƒbƒN
+    // ï¿½Qï¿½[ï¿½ï¿½ï¿½Jï¿½nï¿½ï¿½ï¿½Wï¿½bï¿½N
     private void InGameStart()
     {
         if (_defineSO == null) return;
         _defineSO.isInGame = true;
     }
 
-    // ƒQ[ƒ€I—¹ƒƒWƒbƒN
+    // ï¿½Qï¿½[ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½bï¿½N
     public void OutGameEnd()
     {
         if (_defineSO != null && _defineSO.isEndGame)
         {
-            // ‘S‚Ä‚Ìƒtƒ‰ƒO‚ğ‰Šú‰»
+            // ï¿½Sï¿½Ä‚Ìƒtï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             _defineSO.Reset();
         }
     }
@@ -82,6 +106,11 @@ public class GameSystem1 : MonoBehaviour
         }
 
         return _charaSO != null && _charaSO.chCurrentState;
+    }
+
+    public float GetCurrentHPPercent()
+    {
+        return CurrentHPPercent;
     }
 
   

@@ -2,22 +2,22 @@ using UnityEngine;
 
 public class NoteDate
 {
-    /// <summary> /// ƒm[ƒc‚Ìí—Ş /// </summary>
+    /// <summary> /// ï¿½mï¿½[ï¿½cï¿½Ìï¿½ï¿½ /// </summary>
     public enum NotesType
     {
-        Short = 0,       //’Z‰Ÿ‚µ
-        Long_Start = 1,  //’·‰Ÿ‚µ_ŠJn
-        Long_End = 2,    //’·‰Ÿ‚µ_I—¹
-        Rush = 3,        //˜A‘Å
+        Short = 0,       //ï¿½Zï¿½ï¿½ï¿½ï¿½
+        Long_Start = 1,  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½Jï¿½n
+        Long_End = 2,    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½Iï¿½ï¿½
+        Rush = 3,        //ï¿½Aï¿½ï¿½
     }
 
-    /// <summary> /// ƒm[ƒc\‘¢‘Ì /// </summary>
+    /// <summary> /// ï¿½mï¿½[ï¿½cï¿½\ï¿½ï¿½ï¿½ï¿½ /// </summary>
     [System.Serializable]
     public struct Notes
     {
         public float targetTime;        
         public int lane;
         public Vector3 targetPosition; 
-        public NotesType noteType;      //ƒm[ƒcí—Ş
+        public NotesType noteType;      //ï¿½mï¿½[ï¿½cï¿½ï¿½ï¿½
     }
 }

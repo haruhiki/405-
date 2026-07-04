@@ -231,10 +231,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Judge
   myLane: 0
-  judgeRadius: 1.5
   perfectWindow: 0.05
   greatWindow: 0.12
+  badWindow: 0.2
+  misstakeDamage: 10
   _defineSO: {fileID: 11400000, guid: c61afc45d5d1dc543a49268dafdea2e6, type: 2}
+  _charactor: {fileID: 0}
 --- !u!212 &250615945
 SpriteRenderer:
   serializedVersion: 2
@@ -340,10 +342,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Judge
   myLane: 1
-  judgeRadius: 1.5
   perfectWindow: 0.05
   greatWindow: 0.12
+  badWindow: 0.2
+  misstakeDamage: 10
   _defineSO: {fileID: 11400000, guid: c61afc45d5d1dc543a49268dafdea2e6, type: 2}
+  _charactor: {fileID: 0}
 --- !u!212 &390409224
 SpriteRenderer:
   serializedVersion: 2
@@ -439,7 +443,7 @@ MonoBehaviour:
   BGMSounds: []
   SECategorys: []
   masterVolume: 1
-  bgmmasterVolume: 1
+  bgmmasterVolume: 0.583
   semasterVolume: 1
   activeAudioData: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
 --- !u!4 &947211012

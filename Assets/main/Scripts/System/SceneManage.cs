@@ -1,23 +1,31 @@
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class SceneManage : MonoBehaviour
 {
 
-    //ƒtƒ‰ƒOŠÇ—SO
+    //ï¿½tï¿½ï¿½ï¿½Oï¿½Ç—ï¿½SO
     Define _defineSO;
     private void Start() { _defineSO = GetComponent<Define>();  }
 
-    //ƒCƒxƒ“ƒg“o˜^
+    public void LoadSelectScene()
+    {
+        SceneManager.LoadScene((int)Define.SceneState.Select);
+    }
+
+    public void LoadResultScene()
+    {
+        SceneManager.LoadScene((int)Define.SceneState.Result);
+    }
+
+    //ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½oï¿½^
     private void OnEnable()
     {
         
     }
 
-    //TODO:â‘Î -> ƒCƒxƒ“ƒg‚Ì“o˜^‰ğœ(ƒGƒ‰[‚ÌŒ´ˆö‚É‚È‚é‚©‚ç)
+    //TODO:ï¿½ï¿½ï¿½ -> ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½Ì“oï¿½^ï¿½ï¿½ï¿½ï¿½(ï¿½Gï¿½ï¿½ï¿½[ï¿½ÌŒï¿½ï¿½ï¿½ï¿½É‚È‚é‚©ï¿½ï¿½)
     private void OnDisable()
     {
         
@@ -29,15 +37,15 @@ public class SceneManage : MonoBehaviour
 
     }
 
-    /// <summary> /// ƒV[ƒ“‚ÌØ‚è‘Ö‚¦‚ÆŠeˆ— -> ƒV[ƒ“IDQÆ /// </summary>
+    /// <summary> /// ï¿½Vï¿½[ï¿½ï¿½ï¿½ÌØ‚ï¿½Ö‚ï¿½ï¿½ÆŠeï¿½ï¿½ï¿½ï¿½ -> ï¿½Vï¿½[ï¿½ï¿½IDï¿½Qï¿½ï¿½ /// </summary>
     /// <param name="SceneID"></param>
     public void SceneChange(int SceneID) 
     {
-        //ŠeƒV[ƒ“•ªŠò
+        //ï¿½eï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         switch (SceneID)
         {
             case (int)Define.SceneState.Title:
-                //ŠeƒV[ƒ“‚²‚Æ‚Éˆá‚¤‘JˆÚƒAƒNƒVƒ‡ƒ“‚ğ‚Ü‚Æ‚ß‚é
+                //ï¿½eï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚Éˆá‚¤ï¿½Jï¿½ÚƒAï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Æ‚ß‚ï¿½
                 ChangeEvent(SceneID);
                 SceneManager.LoadScene(SceneID);
                 break;
@@ -64,23 +72,23 @@ public class SceneManage : MonoBehaviour
         }
     }
 
-    //ŠeƒV[ƒ“‚ÌØ‚è‘Ö‚¦ƒCƒxƒ“ƒg
+    //ï¿½eï¿½Vï¿½[ï¿½ï¿½ï¿½ÌØ‚ï¿½Ö‚ï¿½ï¿½ï¿½ï¿½Cï¿½xï¿½ï¿½ï¿½g
     private void ChangeEvent(int SceneID) 
     {
         if(_defineSO != null) { return; }
-        //ƒV[ƒ“‘JˆÚƒAƒjƒ[ƒVƒ‡ƒ“
+        //ï¿½Vï¿½[ï¿½ï¿½ï¿½Jï¿½ÚƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½
         
 
     }
 
-    //”ñ“¯Šúˆ——p‚ÌƒV[ƒ“ƒ[ƒh
+    //ï¿½ñ“¯Šï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½ÌƒVï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h
     private IEnumerator LoadAsync(int SceneID)
     {
         
-        //”ñ“¯Šúˆ——p
+        //ï¿½ñ“¯Šï¿½ï¿½ï¿½ï¿½ï¿½ï¿½p
         SceneManager.LoadSceneAsync(SceneID);
 
-        //TODO:ƒ[ƒh‚Ì‰½‚©‚µ‚ç‚Ìˆ—‚ğ‘‚­
+        //TODO:ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½Ì‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
         yield return SceneID;

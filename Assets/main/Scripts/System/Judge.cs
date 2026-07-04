@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class Judge : MonoBehaviour
 {
-    [Header("ђЭ’и")]
-    [SerializeField] private int myLane;                     // 0:Ќ¶, 1:‰E
-    [SerializeField] private float perfectWindow = 0.05f;    // —З‚М‹–—eЋћЉФЌ· (•b)
-    [SerializeField] private float greatWindow = 0.12f;      // ‰В‚М‹–—eЋћЉФЌ· (•b)
-    [SerializeField] private float badWindow = 0.20f;        // •s‰ВЃi‚±‚к€ИЏг—Ј‚к‚Д‚ў‚Ѕ‚з–іЋ‹Ѓj‚М‹–—eЋћЉФЌ·
-    [SerializeField] private float misstakeDamage = 10.0f;   // ѓ~ѓXЋћ‚ЙЋу‚Ї‚йѓ_ѓЃЃ[ѓW—К
+    [Header("пїЅЭ’пїЅ")]
+    [SerializeField] private int myLane;                     // 0:пїЅпїЅ, 1:пїЅE
+    [SerializeField] private float perfectWindow = 0.05f;    // пїЅЗ‚М‹пїЅпїЅeпїЅпїЅпїЅФЌпїЅ (пїЅb)
+    [SerializeField] private float greatWindow = 0.12f;      // пїЅВ‚М‹пїЅпїЅeпїЅпїЅпїЅФЌпїЅ (пїЅb)
+    [SerializeField] private float badWindow = 0.20f;        // пїЅsпїЅВЃiпїЅпїЅпїЅпїЅИЏг—ЈпїЅпїЅД‚пїЅпїЅпїЅпїЅз–іпїЅпїЅпїЅjпїЅМ‹пїЅпїЅeпїЅпїЅпїЅФЌпїЅ
+    [SerializeField] private float misstakeDamage = 10.0f;   // пїЅ~пїЅXпїЅпїЅпїЅЙЋу‚Ї‚пїЅ_пїЅпїЅпїЅ[пїЅWпїЅпїЅ
 
-    [Header("ЋQЏЖ")]
+    [Header("пїЅQпїЅпїЅ")]
     [SerializeField] private Define _defineSO;
     [SerializeField] private Charactor _charactor;
 
@@ -20,42 +20,42 @@ public class Judge : MonoBehaviour
     {
         if (_defineSO == null) return;
 
-        // ѓЌѓ“ѓOѓmЃ[ѓc‚р‰џ‚µ‚Б‚П‚И‚µ‚ЕЉ®‘–‚µЃANotesCon‘¤‚ЄЋ©“®ЏБ–ЕЃiDestroyЃj‚µ‚ЅЏкЌ‡‚МЊџ’m
+        // пїЅпїЅпїЅпїЅпїЅOпїЅmпїЅ[пїЅcпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅП‚И‚пїЅпїЅЕЉпїЅпїЅпїЅпїЅпїЅпїЅANotesConпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅЕЃiDestroyпїЅjпїЅпїЅпїЅпїЅпїЅкЌ‡пїЅМЊпїЅпїЅm
         if (isLongPress && currentLongNote == null)
         {
-            Debug.Log("<color=orange>ЃyѓЌѓ“ѓOЉ®‘–ЃzѓmЃ[ѓc‚МЋ©“®ЏБ–Е‚рЊџ’mЃBѓtѓ‰ѓO‚рђіЏнѓЉѓZѓbѓg‚µ‚Ь‚·ЃB</color>");
+            Debug.Log("<color=orange>пїЅyпїЅпїЅпїЅпїЅпїЅOпїЅпїЅпїЅпїЅпїЅzпїЅmпїЅ[пїЅcпїЅМЋпїЅпїЅпїЅпїЅпїЅпїЅЕ‚пїЅпїЅпїЅпїЅmпїЅBпїЅtпїЅпїЅпїЅOпїЅрђіЏнѓЉпїЅZпїЅbпїЅgпїЅпїЅпїЅЬ‚пїЅпїЅB</color>");
             isLongPress = false;
             StopLongPressSE();
             ConsumeInput();
         }
 
-        // ‚»‚а‚»‚а‘S‘М‚Е‰Ѕ‚М“ь—Н‚а‚И‚Ї‚к‚О‘¦ѓXѓ‹Ѓ[
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅSпїЅМ‚Е‰пїЅпїЅМ“пїЅпїЅН‚пїЅпїЅИ‚пїЅпїЅпїЅО‘пїЅпїЅXпїЅпїЅпїЅ[
         if (!_defineSO.HasInput) return;
 
-        // myLaneЃi0:Ќ¶, 1:‰EЃj‚Й‰ћ‚¶‚ДЋ©•Є‚МѓЊЃ[ѓ“‚М“ь—Н‚рЉ„‚иЏo‚µ
+        // myLaneпїЅi0:пїЅпїЅ, 1:пїЅEпїЅjпїЅЙ‰пїЅпїЅпїЅпїЅДЋпїЅпїЅпїЅпїЅМѓпїЅпїЅ[пїЅпїЅпїЅМ“пїЅпїЅН‚пїЅпїЅпїЅпїЅпїЅoпїЅпїЅ
         bool isMyLaneKey = (myLane == 0) ? _defineSO.isLeftKey : _defineSO.isRightKey;
         if (!isMyLaneKey) return;
 
-        // ‹¤’К‚М“ь—НЏу‘Ф‚рЋж“ѕ
+        // пїЅпїЅпїЅК‚М“пїЅпїЅНЏпїЅФ‚пїЅпїЅж“ѕ
         bool isDetected = _defineSO.isInputDetected;
         bool isHold = _defineSO.isInputHold;
         bool isRush = _defineSO.isInputRush;
 
-        // ‘ОЏЫѓmЃ[ѓc‚рЋћЉФЋІ‚©‚зђіЉm‚ЙѓLѓѓѓbѓ`
+        // пїЅОЏЫѓmпїЅ[пїЅcпїЅпїЅпїЅпїЅпїЅФЋпїЅпїЅпїЅпїЅзђіпїЅmпїЅЙѓLпїЅпїЅпїЅbпїЅ`
         NotesCon targetNote = isLongPress ? currentLongNote : GetNearestNote();
         
-        // ’@‚­‚Ч‚«ѓmЃ[ѓc‚Є‚а‚¤ѓVЃ[ѓ“‚Й‚И‚ўЃinullЃj‚М‚ЙѓLЃ[“ь—Н‚ѕ‚ЇЋc‚Б‚Д‚ў‚йЏкЌ‡‚М€А‘S•Щ
+        // пїЅ@пїЅпїЅпїЅЧ‚пїЅпїЅmпїЅ[пїЅcпїЅпїЅпїЅпїЅпїЅпїЅпїЅVпїЅ[пїЅпїЅпїЅЙ‚И‚пїЅпїЅinullпїЅjпїЅМ‚ЙѓLпїЅ[пїЅпїЅпїЅН‚пїЅпїЅпїЅпїЅcпїЅпїЅпїЅД‚пїЅпїЅпїЅкЌ‡пїЅМ€пїЅпїЅSпїЅпїЅ
         if (targetNote == null)
         {
             ConsumeInput();
             return;
         }
 
-        // ‰№ѓQЃ[‚Мђв‘Ођі‹`ЃFЋћЉФЌ·‚МЊvЋZ
+        // пїЅпїЅпїЅQпїЅ[пїЅМђпїЅОђпїЅпїЅ`пїЅFпїЅпїЅпїЅФЌпїЅпїЅМЊvпїЅZ
         float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
         float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - currentTime);
 
-        // ѓmЃ[ѓcѓ^ѓCѓv‚І‚Ж‚М”»’и•ЄЉт
+        // пїЅmпїЅ[пїЅcпїЅ^пїЅCпїЅvпїЅпїЅпїЅЖ‚М”пїЅпїЅи•ЄпїЅпїЅ
         switch (targetNote.GetNoteType())
         {
             case NoteDate.NotesType.Short:
@@ -66,7 +66,7 @@ public class Judge : MonoBehaviour
                 break;
 
             case NoteDate.NotesType.Long_Start:
-                // ‰џ‚µЋn‚Я(isDetected)‚ѕ‚Ї‚Е‚И‚­ЃA“r’†‚©‚з‚М’·‰џ‚µ(isHold)‚а€шђ”‚Й“Љ‚°‚ДЏ€—ќ‚·‚й‚єЃI
+                // пїЅпїЅпїЅпїЅпїЅnпїЅпїЅ(isDetected)пїЅпїЅпїЅпїЅпїЅЕ‚И‚пїЅпїЅAпїЅrпїЅпїЅпїЅпїЅпїЅпїЅМ’пїЅпїЅпїЅпїЅпїЅ(isHold)пїЅпїЅпїЅпїЅпїЅпїЅпїЅЙ“пїЅпїЅпїЅпїЅДЏпїЅпїЅпїЅпїЅпїЅпїЅй‚єпїЅI
                 ProcessLongHit(targetNote, timeDiff, isDetected, isHold, isRush, currentTime);
                 break;
 
@@ -80,7 +80,7 @@ public class Judge : MonoBehaviour
     }
 
     /// <summary>
-    /// ? ЌЎ’@‚­‚Ч‚«ЃAЌЕ‚аЊ»ЌЭЋћЉФ‚Й‹Я‚ўЃA‚Ь‚Ѕ‚НЃuЊ»ЌЭ’К‰Я’†Ѓv‚МѓmЃ[ѓc‚р1‚В‚ѕ‚ЇЌх“G
+    /// ? пїЅпїЅпїЅ@пїЅпїЅпїЅЧ‚пїЅпїЅAпїЅЕ‚пїЅпїЅпїЅпїЅЭЋпїЅпїЅФ‚Й‹Я‚пїЅпїЅAпїЅЬ‚пїЅпїЅНЃuпїЅпїЅпїЅЭ’К‰Я’пїЅпїЅvпїЅМѓmпїЅ[пїЅcпїЅпїЅ1пїЅВ‚пїЅпїЅпїЅпїЅпїЅпїЅG
     /// </summary>
     NotesCon GetNearestNote()
     {
@@ -94,20 +94,20 @@ public class Judge : MonoBehaviour
         {
             if (n.GetLane() != myLane) continue;
 
-            // Љщ‚ЙNotesCon‘¤‚ЕЏБ–Еѓtѓ‰ѓO‚Є—§‚Б‚Д‚ў‚йѓ]ѓ“ѓr‚НѓXѓ‹Ѓ[
-            //ЃiЃ¦NotesCon‚Й public bool IsDestroyed ‚МѓvѓЌѓpѓeѓB‚Є‚ ‚к‚ОA“®ЃA‚И‚Ї‚к‚О‚±‚МЌs‚рѓRѓЃѓ“ѓgѓAѓEѓg‚Е‚аOKЃj
+            // пїЅпїЅпїЅпїЅNotesConпїЅпїЅпїЅЕЏпїЅпїЅЕѓtпїЅпїЅпїЅOпїЅпїЅпїЅпїЅпїЅпїЅпїЅД‚пїЅпїЅпїЅ]пїЅпїЅпїЅrпїЅНѓXпїЅпїЅпїЅ[
+            //пїЅiпїЅпїЅNotesConпїЅпїЅ public bool IsDestroyed пїЅМѓvпїЅпїЅпїЅpпїЅeпїЅBпїЅпїЅпїЅпїЅпїЅпїЅОAпїЅпїЅпїЅAпїЅИ‚пїЅпїЅпїЅО‚пїЅпїЅМЌsпїЅпїЅпїЅRпїЅпїЅпїЅпїЅпїЅgпїЅAпїЅEпїЅgпїЅЕ‚пїЅOKпїЅj
             // if (n.IsDestroyed) continue; 
 
-            // ? Ѓy“r’†‚©‚з”»’и‚р‚Ж‚й‚Ѕ‚Я‚М’ґђвѓpѓЏЃ[ѓAѓbѓvЃz
-            // ‚а‚µѓЌѓ“ѓOѓmЃ[ѓc‚ЕЃAЉщ‚ЙЋn“_‚р‰Я‚¬‚Д‚ў‚йЃicurrentTime >= targetTimeЃj‚ЄЃA
-            // ‚Ь‚ѕЏI“_‚р‰Я‚¬‚Д‚ў‚И‚ўЃicurrentTime <= endTimeЃj’К‰Я’†‚МѓmЃ[ѓc‚ѕ‚Б‚ЅЏкЌ‡ЃAЌЕ—Dђж‚ЕѓЌѓbѓNѓIѓ“‚·‚йЃI
+            // ? пїЅyпїЅrпїЅпїЅпїЅпїЅпїЅз”»пїЅпїЅпїЅпїЅЖ‚й‚ЅпїЅЯ‚М’пїЅпїЅпїЅpпїЅпїЅпїЅ[пїЅAпїЅbпїЅvпїЅz
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅOпїЅmпїЅ[пїЅcпїЅЕЃAпїЅпїЅпїЅЙЋnпїЅ_пїЅпїЅпїЅЯ‚пїЅпїЅД‚пїЅпїЅпїЅicurrentTime >= targetTimeпїЅjпїЅпїЅпїЅA
+            // пїЅЬ‚пїЅпїЅIпїЅ_пїЅпїЅпїЅЯ‚пїЅпїЅД‚пїЅпїЅИ‚пїЅпїЅicurrentTime <= endTimeпїЅjпїЅК‰Я’пїЅпїЅМѓmпїЅ[пїЅcпїЅпїЅпїЅпїЅпїЅпїЅпїЅкЌ‡пїЅAпїЅЕ—DпїЅпїЅЕѓпїЅпїЅbпїЅNпїЅIпїЅпїЅпїЅпїЅпїЅпїЅI
             if (n.GetNoteType() == NoteDate.NotesType.Long_Start && 
                 currentTime >= n.GetTargetTime() && currentTime <= n.GetEndTime())
             {
-                return n; // ’К‰Я’†‚МѓЌѓ“ѓOѓmЃ[ѓc‚р”­Њ©‚µ‚Ѕ‚з‘¦ЌА‚Й‚±‚к‚р•Ф‚·ЃI
+                return n; // пїЅК‰Я’пїЅпїЅМѓпїЅпїЅпїЅпїЅOпїЅmпїЅ[пїЅcпїЅр”­ЊпїЅпїЅпїЅпїЅпїЅпїЅз‘¦пїЅпїЅпїЅЙ‚пїЅпїЅпїЅпїЅФ‚пїЅпїЅI
             }
 
-            // ’КЏн‚М‹——ЈЊvЋZЃiѓVѓ‡Ѓ[ѓg‚вЃA‚Ь‚ѕ”»’иѓ‰ѓCѓ“‚Й“ћ’B‚µ‚Д‚ў‚И‚ўѓmЃ[ѓc—pЃj
+            // пїЅКЏпїЅМ‹пїЅпїЅпїЅпїЅvпїЅZпїЅiпїЅVпїЅпїЅпїЅ[пїЅgпїЅпїЅAпїЅЬ‚пїЅпїЅпїЅпїЅиѓ‰пїЅCпїЅпїЅпїЅЙ“пїЅпїЅBпїЅпїЅпїЅД‚пїЅпїЅИ‚пїЅпїЅmпїЅ[пїЅcпїЅpпїЅj
             float diff = Mathf.Abs(n.GetTargetTime() - currentTime);
             if (diff < minDiff)
             {
@@ -118,7 +118,7 @@ public class Judge : MonoBehaviour
         return best;
     }
 
-    /// <summary> ’Z‰џ‚µ”»’и </summary>
+    /// <summary> пїЅZпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ </summary>
     void ProcessShortHit(NotesCon note, float timeDiff)
     {
         if (timeDiff <= greatWindow)
@@ -133,26 +133,26 @@ public class Judge : MonoBehaviour
         ConsumeInput();
     }
 
-    /// <summary> ’·‰џ‚µ”»’иЃi“r’†‚©‚з‚МЉ„‚иЌћ‚Э‘О‰ћ”ЕЃj </summary>
+    /// <summary> пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅiпїЅrпїЅпїЅпїЅпїЅпїЅпїЅМЉпїЅпїЅиЌћпїЅЭ‘О‰пїЅпїЅЕЃj </summary>
     void ProcessLongHit(NotesCon note, float timeDiff, bool isDetected, bool isHold, bool isRush, float currentTime)
     {
-        // „џ„џ ЃyђV‹KЋА‘•ЃzѓЌѓ“ѓOѓmЃ[ѓc‚МЃu“r’†‚©‚з‚М”»’иЋж“ѕЃvЏ€—ќ „џ„џ
-        // ‚Ь‚ѕ’·‰џ‚µЏу‘Ф‚Й‚И‚Б‚Д‚ў‚И‚ў‚ЄЃAЃu‚·‚Е‚ЙЋn“_‚р’К‰Я’†Ѓv‚©‚ВЃuЋw‚ЄѓzЃ[ѓ‹ѓh(isHold)Ѓv‚і‚к‚ЅЏкЌ‡ЃI
+        // пїЅпїЅпїЅпїЅ пїЅyпїЅVпїЅKпїЅпїЅпїЅпїЅпїЅzпїЅпїЅпїЅпїЅпїЅOпїЅmпїЅ[пїЅcпїЅМЃuпїЅrпїЅпїЅпїЅпїЅпїЅпїЅМ”пїЅпїЅпїЅж“ѕпїЅvпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        // пїЅЬ‚пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅФ‚Й‚И‚пїЅпїЅД‚пїЅпїЅИ‚пїЅпїЅпїЅпїЅAпїЅuпїЅпїЅпїЅЕ‚ЙЋnпїЅ_пїЅпїЅК‰Я’пїЅпїЅvпїЅпїЅпїЅВЃuпїЅwпїЅпїЅпїЅzпїЅ[пїЅпїЅпїЅh(isHold)пїЅvпїЅпїЅпїЅк‚ЅпїЅкЌ‡пїЅI
         if (!isLongPress && isHold && currentTime >= note.GetTargetTime() && currentTime <= note.GetEndTime())
         {
             isLongPress = true;
             currentLongNote = note;
-            note.SetHoldVisual(true); // ѓmЃ[ѓc‚Й’·‰џ‚µ’†‚Е‚ ‚й‚±‚Ж‚р“`‚¦‚йЃi‚±‚к‚Е‘С‚ЄЏk‚ЭЏo‚·‚єЃIЃj
+            note.SetHoldVisual(true); // пїЅmпїЅ[пїЅcпїЅЙ’пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅЕ‚пїЅпїЅй‚±пїЅЖ‚пїЅ`пїЅпїЅпїЅпїЅiпїЅпїЅпїЅпїЅЕ‘С‚пїЅпїЅkпїЅЭЏoпїЅпїЅпїЅпїЅпїЅIпїЅj
             MoveCharacterToNotePosition(transform.position);
 
             _defineSO.PlayNoteSE(NoteDate.NotesType.Long_Start, true);
-            Debug.Log("<color=lime>Ѓy’·‰џ‚µ“r’†•њ‹AЃzѓmЃ[ѓc‚М“r’†‚©‚зѓzЃ[ѓ‹ѓh‚рЊџ’mЃE•њ‹A‚µ‚Ѕ‚єЃI</color>");
+            Debug.Log("<color=lime>пїЅyпїЅпїЅпїЅпїЅпїЅпїЅпїЅrпїЅпїЅпїЅпїЅпїЅAпїЅzпїЅmпїЅ[пїЅcпїЅМ“rпїЅпїЅпїЅпїЅпїЅпїЅzпїЅ[пїЅпїЅпїЅhпїЅпїЅпїЅпїЅпїЅmпїЅEпїЅпїЅпїЅAпїЅпїЅпїЅпїЅпїЅпїЅпїЅI</color>");
             
             ConsumeInput();
             return;
         }
 
-        // ‡@ ’КЏн‚М’·‰џ‚µЉJЋnЃiЉ®аш‚Й“Є‚©‚з’@‚ў‚ЅЏuЉФЃj
+        // пїЅ@ пїЅКЏпїЅМ’пїЅпїЅпїЅпїЅпїЅпїЅJпїЅnпїЅiпїЅпїЅпїЅпїЅпїЅЙ“пїЅпїЅпїЅпїЅпїЅ@пїЅпїЅпїЅпїЅпїЅuпїЅФЃj
         if (isDetected && !isLongPress)
         {
             if (timeDiff <= greatWindow)
@@ -163,7 +163,7 @@ public class Judge : MonoBehaviour
                 MoveCharacterToNotePosition(transform.position);
 
                 _defineSO.PlayNoteSE(NoteDate.NotesType.Long_Start, true);
-                Debug.Log("<color=cyan>Ѓy’·‰џ‚µЉJЋnЃzѓWѓѓѓXѓgѓ^ѓCѓ~ѓ“ѓO‚ЕѓzЃ[ѓ‹ѓhђ¬ЊчЃI</color>");
+                Debug.Log("<color=cyan>пїЅyпїЅпїЅпїЅпїЅпїЅпїЅпїЅJпїЅnпїЅzпїЅWпїЅпїЅпїЅXпїЅgпїЅ^пїЅCпїЅ~пїЅпїЅпїЅOпїЅЕѓzпїЅ[пїЅпїЅпїЅhпїЅпїЅпїЅпїЅпїЅI</color>");
             }
             else
             {
@@ -173,15 +173,15 @@ public class Judge : MonoBehaviour
             return;
         }
 
-        // ‚±‚к€ИЌ~‚Н’·‰џ‚µѓЌѓbѓNѓIѓ“ЃiisLongPressЃj’†‚МЏ€—ќ
+        // пїЅпїЅпїЅпїЅИЌ~пїЅН’пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅbпїЅNпїЅIпїЅпїЅпїЅiisLongPressпїЅjпїЅпїЅпїЅМЏпїЅпїЅпїЅ
         if (!isLongPress) return;
 
-        // ‡A “r’†‚ЕЋw‚ЄЉ®‘S‚Й—Ј‚к‚Д‚µ‚Ь‚Б‚ЅЏкЌ‡ЃiѓzЃ[ѓ‹ѓhЋё”sЃE—Ј’EЃj
-        // Ѓ¦ѓmЃ[ѓc‚ЄЉO•”‚ЕЏџЋи‚ЙЏБ‚¦‚ЅЏкЌ‡ЃiUpdate‘¤‚МЋх–ЅЃj‚а‚±‚±‚Е€А‘S‚ЙЉO‚·
+        // пїЅA пїЅrпїЅпїЅпїЅЕЋwпїЅпїЅпїЅпїЅпїЅSпїЅЙ—пїЅпїЅпїЅД‚пїЅпїЅЬ‚пїЅпїЅпїЅпїЅкЌ‡пїЅiпїЅzпїЅ[пїЅпїЅпїЅhпїЅпїЅпїЅsпїЅEпїЅпїЅпїЅEпїЅj
+        // пїЅпїЅпїЅmпїЅ[пїЅcпїЅпїЅпїЅOпїЅпїЅпїЅЕЏпїЅпїЅпїЅЙЏпїЅпїЅпїЅпїЅпїЅпїЅкЌ‡пїЅiUpdateпїЅпїЅпїЅМЋпїЅпїЅпїЅпїЅjпїЅпїЅпїЅпїЅпїЅпїЅпїЅЕ€пїЅпїЅSпїЅЙЉOпїЅпїЅ
         if ((!isDetected && !isHold && !isRush) || note == null)
         {
             StopLongPressSE();
-            Debug.Log("<color=red>Ѓy’·‰џ‚µЋё”sЃzѓzЃ[ѓ‹ѓh’†‚ЙЋw‚Є—Ј‚к‚Ѕ‚єЃI</color>");
+            Debug.Log("<color=red>пїЅyпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅsпїЅzпїЅzпїЅ[пїЅпїЅпїЅhпїЅпїЅпїЅЙЋwпїЅпїЅпїЅпїЅпїЅк‚ЅпїЅпїЅпїЅI</color>");
             
             if (note != null)
             {
@@ -195,7 +195,7 @@ public class Judge : MonoBehaviour
             return;
         }
 
-        // ‡B ’·‰џ‚µ‚МЉ®—№Ѓiѓ^ѓCѓ~ѓ“ѓO‚ж‚­Ћw‚р—Ј‚µ‚ЅЏuЉФЃj
+        // пїЅB пїЅпїЅпїЅпїЅпїЅпїЅпїЅМЉпїЅпїЅпїЅпїЅiпїЅ^пїЅCпїЅ~пїЅпїЅпїЅOпїЅж‚­пїЅwпїЅр—Ј‚пїЅпїЅпїЅпїЅuпїЅФЃj
         if (isRush && isLongPress)
         {
             StopLongPressSE();
@@ -218,7 +218,7 @@ public class Judge : MonoBehaviour
         }
     }
 
-    /// <summary> A‘Е”»’и </summary>
+    /// <summary> пїЅAпїЅЕ”пїЅпїЅпїЅ </summary>
     void ProcessRushHit(NotesCon note, float timeDiff)
     {
         JudgePass(note, timeDiff);
@@ -231,13 +231,13 @@ public class Judge : MonoBehaviour
 
         if (caluculateTimeDiff <= perfectWindow)
         {
-            Debug.Log($"<color=orange>ЃљЃљ —З (Perfect) ЃљЃљ</color> ЊлЌ·: {caluculateTimeDiff:F3}s");
+            Debug.Log($"<color=orange>пїЅпїЅпїЅпїЅ пїЅпїЅ (Perfect) пїЅпїЅпїЅпїЅ</color> пїЅлЌ·: {caluculateTimeDiff:F3}s");
             _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
             targetNote.OnHit(); 
         }
         else 
         {
-            Debug.Log($"<color=yellow>‰В (Great) </color> ЊлЌ·: {caluculateTimeDiff:F3}s");
+            Debug.Log($"<color=yellow>пїЅпїЅ (Great) </color> пїЅлЌ·: {caluculateTimeDiff:F3}s");
             _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
             targetNote.OnHit();
         }
@@ -245,13 +245,18 @@ public class Judge : MonoBehaviour
 
     private void HandleMissProcessing(NotesCon targetNote, float timeDiff)
     {
-        Debug.Log($"<color=red>?•s‰В (Miss)?</color> ЊлЌ·: {timeDiff:F3}s");
+        Debug.Log($"<color=red>?пїЅsпїЅпїЅ (Miss)?</color> пїЅлЌ·: {timeDiff:F3}s");
         _defineSO.PlayNoteSE(targetNote.GetNoteType(), false);
         targetNote.OnMiss();
 
         if (_defineSO.charactorSO != null)
         {
             _defineSO.charactorSO.HPfluctuation(misstakeDamage);
+        }
+
+        if (GameSystem1.Instance != null)
+        {
+            GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage);
         }
     }
 

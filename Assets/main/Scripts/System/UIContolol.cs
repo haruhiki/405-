@@ -10,6 +10,7 @@ private bool isUIEnabled = false;
     [SerializeField] private AudioManager _audioManager;
     [SerializeField] private Define _defineSO; 
     [SerializeField] private SceneManage _sceneManage;
+    [SerializeField] private StageFlowManager _stageFlowManager;
 
     /// <summary> /// ノーツスピードスライダーの設定 /// </summary>
     [System.Serializable]
@@ -112,7 +113,11 @@ private bool isUIEnabled = false;
             Time.timeScale = 1f; 
         }
 
-        if (_sceneManage != null)
+        if (_stageFlowManager != null)
+        {
+            _stageFlowManager.ReturnToSelectScene();
+        }
+        else if (_sceneManage != null)
         {
             _sceneManage.SceneChange(1); // 1はタイトルシーンのインデックス
         }
