@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ca40d258a4363e4286250091020b7c1, type: 3}
+  m_Name: CharactorSO
+  m_EditorClassIdentifier: Assembly-CSharp::CharactorSO
+  constantCharaHP: 200
+  chHPpoint: 200
+  chCurrentState: 0

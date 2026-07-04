@@ -9,15 +9,27 @@ public class InputHandller : MonoBehaviour
     public Transform rightTargetCircle;
 
     private void Update()
-    {
-        // 1. 毎フレームの最初に入力フラグを綺麗にリセット
+    { 
+        //毎フレームの最初に入力フラグを綺麗にリセット
         _defineSO.isInputDetected = false; // 押した瞬間フラグ
         _defineSO.isInputHold = false;     // 押しっぱなしフラグ
         _defineSO.isInputRush = false;     // 離した瞬間フラグ（変数名はそのまま流用）
 
-        // 2. 左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
-        CheckKeyInput(Keyboard.current.fKey, leftTargetCircle.position); // 左レーン
-        CheckKeyInput(Keyboard.current.jKey, rightTargetCircle.position); // 右レーン
+        bool leftPressed = Keyboard.current.fKey.wasPressedThisFrame;
+        bool rightPressed = Keyboard.current.jKey.wasPressedThisFrame;
+
+        if (_defineSO != null)
+        {
+            _defineSO.SetInputKey(rightPressed, leftPressed);
+            if (rightPressed || leftPressed)
+            {
+                _defineSO.PlayInputSE();
+            }
+        }
+
+        //左右のキーの状態をチェックして、フラグを「加算（OR演算）」していく
+        if(leftPressed) CheckKeyInput(Keyboard.current.fKey, leftTargetCircle.position); // 左レーン
+        if(rightPressed) CheckKeyInput(Keyboard.current.jKey, rightTargetCircle.position); // 右レーン
     }
 
     private void CheckKeyInput(KeyControl key, Vector3 circlePos)

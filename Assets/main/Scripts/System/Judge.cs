@@ -1,82 +1,114 @@
-using System.Transactions;
 using UnityEngine;
 
 public class Judge : MonoBehaviour
 {
     [Header("設定")]
-    [SerializeField] private int myLane; // 0:左, 1:右
-    [SerializeField] private float judgeRadius = 1.5f;    // 判定が有効な円の半径
-    [SerializeField] private float perfectWindow = 0.05f; // 良の許容時間差
-    [SerializeField] private float greatWindow = 0.12f;   // 可の許容時間差
-
-    private float distance = 0;   //距離判定変数
+    [SerializeField] private int myLane;                     // 0:左, 1:右
+    [SerializeField] private float perfectWindow = 0.05f;    // 良の許容時間差 (秒)
+    [SerializeField] private float greatWindow = 0.12f;      // 可の許容時間差 (秒)
+    [SerializeField] private float badWindow = 0.20f;        // 不可（これ以上離れていたら無視）の許容時間差
+    [SerializeField] private float misstakeDamage = 10.0f;   // ミス時に受けるダメージ量
 
     [Header("参照")]
     [SerializeField] private Define _defineSO;
-    private AudioSource audioSource;
+    [SerializeField] private Charactor _charactor;
 
     private bool isLongPress = false;
     private NotesCon currentLongNote = null;
 
-    void Start() => audioSource = FindFirstObjectByType<AudioSource>();
-
     void Update()
     {
-        if(_defineSO == null) { return; }
+        if (_defineSO == null) return;
 
-        bool hasInput = _defineSO.isInputDetected || _defineSO.isInputHold || _defineSO.isInputRush;
-        if(!hasInput) { return; }
-
-        //座標変換
-        float camToPlaneDist = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
-        Vector3 screenPosWithDepth = new Vector3(_defineSO.inputScreenPos.x, _defineSO.inputScreenPos.y, camToPlaneDist);
-        Vector3 touchWorldPos = Camera.main.ScreenToWorldPoint(screenPosWithDepth);
-        touchWorldPos.z = 0;
-
-        //距離判定
-        distance = Vector2.Distance(touchWorldPos, transform.position);
-        if (distance > judgeRadius)
+        // ロングノーツを押しっぱなしで完走し、NotesCon側が自動消滅（Destroy）した場合の検知
+        if (isLongPress && currentLongNote == null)
         {
-            if (_defineSO.isInputDetected) 
-            {
-                Debug.LogWarning($"<color=red>[押し始め脱落] 判定円の外です。距離: {distance:F2} / 許容: {judgeRadius}</color>");
-            }
-            return; 
+            Debug.Log("<color=orange>【ロング完走】ノーツの自動消滅を検知。フラグを正常リセットします。</color>");
+            isLongPress = false;
+            StopLongPressSE();
+            ConsumeInput();
         }
 
-        //このレーンのノーツを取得
-        NotesCon targetNote = isLongPress ? currentLongNote : GetNearestNote();
-        if (targetNote == null) {return; }
+        // そもそも全体で何の入力もなければ即スルー
+        if (!_defineSO.HasInput) return;
 
-        //ノーツの判定
+        // myLane（0:左, 1:右）に応じて自分のレーンの入力を割り出し
+        bool isMyLaneKey = (myLane == 0) ? _defineSO.isLeftKey : _defineSO.isRightKey;
+        if (!isMyLaneKey) return;
+
+        // 共通の入力状態を取得
+        bool isDetected = _defineSO.isInputDetected;
+        bool isHold = _defineSO.isInputHold;
+        bool isRush = _defineSO.isInputRush;
+
+        // 対象ノーツを時間軸から正確にキャッチ
+        NotesCon targetNote = isLongPress ? currentLongNote : GetNearestNote();
+        
+        // 叩くべきノーツがもうシーンにない（null）のにキー入力だけ残っている場合の安全弁
+        if (targetNote == null)
+        {
+            ConsumeInput();
+            return;
+        }
+
+        // 音ゲーの絶対正義：時間差の計算
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
+        float timeDiff = Mathf.Abs(targetNote.GetTargetTime() - currentTime);
+
+        // ノーツタイプごとの判定分岐
         switch (targetNote.GetNoteType())
         {
             case NoteDate.NotesType.Short:
-                if (_defineSO.isInputDetected) ProcessShortHit(targetNote);
+                if (isDetected)
+                {
+                    ProcessShortHit(targetNote, timeDiff);
+                }
                 break;
 
             case NoteDate.NotesType.Long_Start:
-                ProcessLongHit(targetNote);
+                // 押し始め(isDetected)だけでなく、途中からの長押し(isHold)も引数に投げて処理するぜ！
+                ProcessLongHit(targetNote, timeDiff, isDetected, isHold, isRush, currentTime);
                 break;
 
             case NoteDate.NotesType.Rush:
-                if(_defineSO.isInputDetected) ProcessRushHit(targetNote);
+                if (isDetected)
+                {
+                    ProcessRushHit(targetNote, timeDiff);
+                }
                 break;
         }
     }
 
-    /// <summary> /// 近くのノーツを取得 /// </summary>
-    /// <returns></returns>
+    /// <summary>
+    /// ? 今叩くべき、最も現在時間に近い、または「現在通過中」のノーツを1つだけ索敵
+    /// </summary>
     NotesCon GetNearestNote()
     {
         NotesCon[] notes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
+        
         NotesCon best = null;
-        float minDiff = 0.5f; // 0.5秒以上離れているものは対象外
+        float minDiff = badWindow; 
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
 
         foreach (var n in notes)
         {
             if (n.GetLane() != myLane) continue;
-            float diff = Mathf.Abs(n.GetTargetTime() - audioSource.time);
+
+            // 既にNotesCon側で消滅フラグが立っているゾンビはスルー
+            //（※NotesConに public bool IsDestroyed のプロパティがあれば連動、なければこの行をコメントアウトでもOK）
+            // if (n.IsDestroyed) continue; 
+
+            // ? 【途中から判定をとるための超絶パワーアップ】
+            // もしロングノーツで、既に始点を過ぎている（currentTime >= targetTime）が、
+            // まだ終点を過ぎていない（currentTime <= endTime）通過中のノーツだった場合、最優先でロックオンする！
+            if (n.GetNoteType() == NoteDate.NotesType.Long_Start && 
+                currentTime >= n.GetTargetTime() && currentTime <= n.GetEndTime())
+            {
+                return n; // 通過中のロングノーツを発見したら即座にこれを返す！
+            }
+
+            // 通常の距離計算（ショートや、まだ判定ラインに到達していないノーツ用）
+            float diff = Mathf.Abs(n.GetTargetTime() - currentTime);
             if (diff < minDiff)
             {
                 minDiff = diff;
@@ -86,102 +118,168 @@ public class Judge : MonoBehaviour
         return best;
     }
 
-    /// <summary> /// 短押し /// </summary>
-    /// <param name="note"> ノーツタイプがshort</param>
-    void ProcessShortHit(NotesCon note)
+    /// <summary> 短押し判定 </summary>
+    void ProcessShortHit(NotesCon note, float timeDiff)
     {
-        float diff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
-        if (diff <= greatWindow)
+        if (timeDiff <= greatWindow)
         {
-            // 成功なら消す
-            //判定パス
-            JudgePass(note,diff);
+            MoveCharacterToNotePosition(transform.position);
+            JudgePass(note, timeDiff);
         }
-      
+        else
+        {
+            HandleMissProcessing(note, timeDiff);
+        }
+        ConsumeInput();
     }
 
-    /// <summary> /// 長押し /// </summary>
-    /// <param name="note"> noteTypeがLongの場合 </param>
-    void ProcessLongHit(NotesCon note)
+    /// <summary> 長押し判定（途中からの割り込み対応版） </summary>
+    void ProcessLongHit(NotesCon note, float timeDiff, bool isDetected, bool isHold, bool isRush, float currentTime)
     {
-        // 押し始めの判定（キーが新しく押された瞬間）
-        if (_defineSO.isInputDetected && !isLongPress)
+        // ── 【新規実装】ロングノーツの「途中からの判定取得」処理 ──
+        // まだ長押し状態になっていないが、「すでに始点を通過中」かつ「指がホールド(isHold)」された場合！
+        if (!isLongPress && isHold && currentTime >= note.GetTargetTime() && currentTime <= note.GetEndTime())
         {
-            float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
+            isLongPress = true;
+            currentLongNote = note;
+            note.SetHoldVisual(true); // ノーツに長押し中であることを伝える（これで帯が縮み出すぜ！）
+            MoveCharacterToNotePosition(transform.position);
 
+            _defineSO.PlayNoteSE(NoteDate.NotesType.Long_Start, true);
+            Debug.Log("<color=lime>【長押し途中復帰】ノーツの途中からホールドを検知・復帰したぜ！</color>");
+            
+            ConsumeInput();
+            return;
+        }
+
+        // ① 通常の長押し開始（完璧に頭から叩いた瞬間）
+        if (isDetected && !isLongPress)
+        {
             if (timeDiff <= greatWindow)
             {
                 isLongPress = true;
                 currentLongNote = note;
-                note.SetHoldVisual(true);
-                Debug.Log("<color=cyan>【長押し開始】ホールド中...</color>");
+                note.SetHoldVisual(true);  
+                MoveCharacterToNotePosition(transform.position);
+
+                _defineSO.PlayNoteSE(NoteDate.NotesType.Long_Start, true);
+                Debug.Log("<color=cyan>【長押し開始】ジャストタイミングでホールド成功！</color>");
             }
+            else
+            {
+                HandleMissProcessing(note, timeDiff);
+            }
+            ConsumeInput();
             return;
         }
 
-        // 途中で指を離してしまった場合のペナルティ（本物の長押しには必須！）
-        // 押し始めに成功しているのに、入力システムが「押しっぱなし(isInputHold)」を検知しなくなった場合
-        if (isLongPress && !_defineSO.isInputHold && !_defineSO.isInputRush)
-        {
-            // 終了時間より圧倒的に手前で離したならコンボが切れて Miss になる
-            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
-            if (timeDiff > greatWindow)
-            {
-                Debug.Log("<color=red>【長押し失敗】途中で指が離れました！</color>");
-                note.SetHoldVisual(false);
-                note.OnMiss(); // ノーツ消滅（失敗）
-                isLongPress = false;
-                currentLongNote = null;
+        // これ以降は長押しロックオン（isLongPress）中の処理
+        if (!isLongPress) return;
 
-                return;
+        // ② 途中で指が完全に離れてしまった場合（ホールド失敗・離脱）
+        // ※ノーツが外部で勝手に消えた場合（Update側の寿命）もここで安全に外す
+        if ((!isDetected && !isHold && !isRush) || note == null)
+        {
+            StopLongPressSE();
+            Debug.Log("<color=red>【長押し失敗】ホールド中に指が離れたぜ！</color>");
+            
+            if (note != null)
+            {
+                note.SetHoldVisual(false);
+                HandleMissProcessing(note, timeDiff);
             }
+            
+            isLongPress = false;
+            currentLongNote = null;
+            ForceResetAllInputFlags(); 
+            return;
         }
 
-         //離した時の判定（タイミングよく指を離した瞬間）
-        if (_defineSO.isInputRush && isLongPress)
+        // ③ 長押しの完了（タイミングよく指を離した瞬間）
+        if (isRush && isLongPress)
         {
-            float timeDiff = Mathf.Abs(note.GetEndTime() - audioSource.time);
-            Debug.Log($"【長押し完了】離し誤差: {timeDiff:F3}");
+            StopLongPressSE();
+            float endTimeDiff = Mathf.Abs(note.GetEndTime() - currentTime);
+
             note.SetHoldVisual(false);
 
-            JudgePass(note, timeDiff); // 成功判定なら OnHit() でノーツ消滅
+            if (endTimeDiff <= greatWindow)
+            {
+                JudgePass(note, endTimeDiff);
+            }
+            else
+            {
+                HandleMissProcessing(note, endTimeDiff);
+            }
 
             isLongPress = false;
             currentLongNote = null;
+            ConsumeInput();
         }
     }
 
-    /// <summary> /// ラッシュ /// </summary>
-    /// <param name="note"> noteTypeがラッシュの際のみ　</param>
-    void ProcessRushHit(NotesCon note)
+    /// <summary> 連打判定 </summary>
+    void ProcessRushHit(NotesCon note, float timeDiff)
     {
-       float timeDiff = Mathf.Abs(note.GetTargetTime() - audioSource.time);
-        Debug.Log("Rush Tap!");
-        JudgePass(note,timeDiff);
+        JudgePass(note, timeDiff);
+        ConsumeInput();
     }
 
-    /// <summary> /// 判定時のパス /// </summary>
     private void JudgePass(NotesCon targetNote, float caluculateTimeDiff) 
     {
-        if (targetNote == null) { return; }
+        if (targetNote == null) return;
 
-        //判定
         if (caluculateTimeDiff <= perfectWindow)
         {
-            Debug.Log($"<color=orange>{gameObject.name} 良！</color> 誤差:{caluculateTimeDiff:F3} 距離:{distance:F2}");
+            Debug.Log($"<color=orange>★★ 良 (Perfect) ★★</color> 誤差: {caluculateTimeDiff:F3}s");
+            _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
+            targetNote.OnHit(); 
+        }
+        else 
+        {
+            Debug.Log($"<color=yellow>可 (Great) </color> 誤差: {caluculateTimeDiff:F3}s");
+            _defineSO.PlayNoteSE(targetNote.GetNoteType(), true);
             targetNote.OnHit();
         }
-        else if (caluculateTimeDiff <= greatWindow)
+    }
+
+    private void HandleMissProcessing(NotesCon targetNote, float timeDiff)
+    {
+        Debug.Log($"<color=red>?不可 (Miss)?</color> 誤差: {timeDiff:F3}s");
+        _defineSO.PlayNoteSE(targetNote.GetNoteType(), false);
+        targetNote.OnMiss();
+
+        if (_defineSO.charactorSO != null)
         {
-            Debug.Log($"<color=yellow>{gameObject.name} 可！</color> 誤差:{caluculateTimeDiff:F3}");
-            targetNote.OnHit();
+            _defineSO.charactorSO.HPfluctuation(misstakeDamage);
         }
-        else
-        {
-            //デバッグ用：タイミングが早すぎる・遅すぎる場合
-            Debug.Log($"範囲外 誤差:{caluculateTimeDiff:F3}");
-            //仮でMiss時にオブジェクト削除
-            targetNote.OnMiss();
-        }
+    }
+
+    private void MoveCharacterToNotePosition(Vector3 position)
+    {
+        if (_charactor != null) _charactor.MoveToPoint(position);
+    }
+
+    private void StopLongPressSE()
+    {
+        if (AudioManager.Instance != null) AudioManager.Instance.StopLoopSE();
+    }
+
+    private void ConsumeInput()
+    {
+        if (myLane == 0) _defineSO.isLeftKey = false;
+        else _defineSO.isRightKey = false;
+
+        _defineSO.isInputDetected = false;
+        _defineSO.isInputRush = false;
+    }
+
+    private void ForceResetAllInputFlags()
+    {
+        _defineSO.isLeftKey = false;
+        _defineSO.isRightKey = false;
+        _defineSO.isInputDetected = false;
+        _defineSO.isInputHold = false;
+        _defineSO.isInputRush = false;
     }
 }
