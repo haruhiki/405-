@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class NotesCon : MonoBehaviour
 {
-  private NoteDate.Notes myData;
+   private NoteDate.Notes myData;
     private float moveDuration;
     private float startTime;
     private Vector3 spawnPos;
@@ -20,6 +20,9 @@ public class NotesCon : MonoBehaviour
     [Header("Rushノーツの停止位置調整")]
     [Tooltip("0.0〜1.0の間。1.0で完全に判定円中央。0.88にすると判定円の少し手前(88%の位置)で止まります")]
     [SerializeField] private float rushStopThreshold = 0.88f;
+    
+    //  --- ミス判定時のダメージ量 ---
+    [SerializeField] private float misstakeDamage = 10f;
 
     [SerializeField] private Transform trailObject;
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -77,7 +80,7 @@ public class NotesCon : MonoBehaviour
         targetWorldPos = realTarget; 
         spawnPos = transform.position;
 
-        // 【新規】Both または Rush ノーツの場合は強制的に左右の中央ラインに軌道を補正する
+        // Both または Rush ノーツの場合は強制的に左右の中央ラインに軌道を補正する
         if (myData.noteType == NoteDate.NotesType.Both || myData.noteType == NoteDate.NotesType.Rush)
         {
             // もしインスペクターで左右のターゲットが指定されていればそれを使う
@@ -109,6 +112,7 @@ public class NotesCon : MonoBehaviour
 
     void Update()
     {
+        //  --- ノーツの移動処理 ---
         if (!isInitialized || AudioManager.Instance == null || _isDestroyed) return;
 
         float currentTime = AudioManager.Instance.GetCurrentTime();
@@ -202,6 +206,8 @@ public class NotesCon : MonoBehaviour
 
     public void OnMiss()
     {
+        //そのままのダメージを入れてみる ->　のちに変更するかも
+        GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage);
         if (_isDestroyed) return;
         _isDestroyed = true;
         HideAllRenderers();

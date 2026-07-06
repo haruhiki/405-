@@ -17,6 +17,8 @@ public class NotsSpawn : MonoBehaviour
 
     [Header("生成ポイント")]
     public Transform[] spawnPoints;
+    public Transform bothSpawnPoint; // 【追加】同時押し（Both）用の生成ポイント
+    public Transform bothTargetCircle; // 【追加】同時押し（Both）用の判定円の中央ポイント
 
     [Header("判定円の参照")]
     public Transform leftTargetCircle;
@@ -98,45 +100,49 @@ public class NotsSpawn : MonoBehaviour
     }
 
     void Spawn(NoteDate.Notes noteDate)
+{
+    if (noteDate.noteType == NoteDate.NotesType.Long_End)
     {
-        if (noteDate.noteType == NoteDate.NotesType.Long_End)
+        if (activeNoteCon[noteDate.lane] != null)
         {
-            if (activeNoteCon[noteDate.lane] != null)
-            {
-                activeNoteCon[noteDate.lane].SetEndTime(noteDate.targetTime);
-                activeNoteCon[noteDate.lane] = null;
-            }
-            return;
+            activeNoteCon[noteDate.lane].SetEndTime(noteDate.targetTime);
+            activeNoteCon[noteDate.lane] = null;
         }
+        return;
+    }
 
-        // 【修正】プレハブの決定に Both を追加
-        GameObject prefab = shortNotes;
-        if (noteDate.noteType == NoteDate.NotesType.Long_Start) prefab = LongNotes;
-        else if (noteDate.noteType == NoteDate.NotesType.Rush) prefab = RushNotes;
-        else if (noteDate.noteType == NoteDate.NotesType.Both) prefab = bothNotes != null ? bothNotes : shortNotes; // 未設定ならショートで代用
+    // プレハブ決定
+    GameObject prefab = (noteDate.noteType == NoteDate.NotesType.Long_Start) ? LongNotes :
+                        (noteDate.noteType == NoteDate.NotesType.Rush) ? RushNotes : 
+                        (noteDate.noteType == NoteDate.NotesType.Both) ? bothNotes : // 追記が必要
+                        shortNotes;
 
-        // 【修正】生成初期位置の割り出し。BothとRushは中央を基準にする
-        Vector3 spawnPosition = spawnPoints[noteDate.lane].position;
-        Vector3 finalDestination = (noteDate.lane == 0) ? leftTargetCircle.position : rightTargetCircle.position;
+    // 座標決定ロジック：BothとRushは中央ポイントを使う
+    Vector3 spawnPos;
+    Vector3 targetPos;
 
-        if (noteDate.noteType == NoteDate.NotesType.Both || noteDate.noteType == NoteDate.NotesType.Rush)
+    if (noteDate.noteType == NoteDate.NotesType.Both || noteDate.noteType == NoteDate.NotesType.Rush)
+    {
+        spawnPos = (bothSpawnPoint != null) ? bothSpawnPoint.position : (spawnPoints[0].position + spawnPoints[1].position) * 0.5f;
+        targetPos = (bothTargetCircle != null) ? bothTargetCircle.position : (leftTargetCircle.position + rightTargetCircle.position) * 0.5f;
+    }
+    else
+    {
+        spawnPos = spawnPoints[noteDate.lane].position;
+        targetPos = (noteDate.lane == 0) ? leftTargetCircle.position : rightTargetCircle.position;
+    }
+
+    GameObject noteObj = Instantiate(prefab, spawnPos, Quaternion.identity);
+    NotesCon controller = noteObj.GetComponent<NotesCon>();
+    
+    if (controller != null)
+    {
+        controller.Init(noteDate, preSpawnTime, targetPos);
+
+        if (noteDate.noteType == NoteDate.NotesType.Long_Start)
         {
-            Vector3 centerTarget = (leftTargetCircle.position + rightTargetCircle.position) * 0.5f;
-            finalDestination = centerTarget;
-            spawnPosition = (spawnPoints[0].position + spawnPoints[1].position) * 0.5f;
-        }
-
-        GameObject noteObj = Instantiate(prefab, spawnPosition, Quaternion.identity);
-        NotesCon controller = noteObj.GetComponent<NotesCon>();
-        if (controller != null)
-        {
-            // NotesCon内部でも中央に軌道補正するロジックと重複しても安全なように同期
-            controller.Init(noteDate, preSpawnTime, finalDestination);
-
-            if (noteDate.noteType == NoteDate.NotesType.Long_Start)
-            {
-                activeNoteCon[noteDate.lane] = controller;
-            }
+            activeNoteCon[noteDate.lane] = controller;
         }
     }
+}
 }

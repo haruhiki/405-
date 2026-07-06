@@ -173,7 +173,7 @@ public class ChretCreateManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 【完全修正】F/Jキー: 黄色ラインを徹底排除し、押している間だけ通常ロングノーツを滑らかに伸ばす
+    /// 押している間だけ通常ロングノーツを滑らかに伸ばす
     /// </summary>
     private void ProcessKeyRec(int lane, KeyControl key)
     {
@@ -477,6 +477,7 @@ public class ChretCreateManager : MonoBehaviour
         catch (Exception e) { Debug.LogError($"CSVエラー: {e.Message}"); }
     }
 
+    // 譜面作成時に使用するキーや機能等をGUIとして実際の画面にて表示
     private void OnGUI()
     {
         if (AudioManager.Instance == null) return;

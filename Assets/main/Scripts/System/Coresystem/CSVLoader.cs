@@ -40,10 +40,13 @@ public class CSVLoader : MonoBehaviour
                 note.targetTime = targetTime;
                 note.lane = lane;
 
+                //ノーツの種類を判定
+                // Shortノーツ
                 if (typeInt == 1)
                 {
                     note.noteType = NoteDate.NotesType.Short;
                 }
+                // Longノーツ
                 else if (typeInt == 2)
                 {
                     //CSVの末尾コメント（5列目）を見て、StartかEndかを完璧に見極める
@@ -57,9 +60,15 @@ public class CSVLoader : MonoBehaviour
                         note.noteType = NoteDate.NotesType.Long_Start;
                     }
                 }
+                //　rushノーツ
                 else if (typeInt == 3)
                 {
                     note.noteType = NoteDate.NotesType.Rush;
+                }
+                //　同時押しノーツ
+                else if(typeInt == 4)
+                {
+                    note.noteType = NoteDate.NotesType.Both; 
                 }
 
                 //レーンに応じたターゲットの割り当て

@@ -214,6 +214,7 @@ public class Judge : MonoBehaviour
             currentLongNote = null;
             note.SetHoldVisual(false);
             
+            //  ミス判定の処理を行う
             if (GameSystem1.Instance != null && GameSystem1.Instance.RuntimeCharaSO != null)
             {
                 GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage * Time.deltaTime * 2f);
