@@ -1,0 +1,102 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class CharactorHPBar : MonoBehaviour
+{
+    [Header("éQè∆")]
+    [SerializeField] private CharactorSO _charaSO;
+    [SerializeField] private Image _hpImage;
+    [SerializeField] private Slider _hpSlider;
+    [SerializeField] private bool useGameSystemRuntime = true;
+
+    private CharactorSO _activeSo;
+    private bool _isBound;
+
+    private void OnEnable()
+    {
+        TryBindToActiveCharacter();
+    }
+
+    private void Start()
+    {
+        TryBindToActiveCharacter();
+    }
+
+    private void Update()
+    {
+        if (!_isBound)
+        {
+            TryBindToActiveCharacter();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_activeSo != null)
+        {
+            _activeSo.OnHPChanged -= HandleHPChanged;
+            _activeSo = null;
+        }
+
+        _isBound = false;
+    }
+
+    private void OnDestroy()
+    {
+        if (_activeSo != null)
+        {
+            _activeSo.OnHPChanged -= HandleHPChanged;
+        }
+    }
+
+    private void HandleHPChanged(float normalizedValue)
+    {
+        UpdateHPBar(normalizedValue);
+    }
+
+    private void UpdateHPBar(float normalizedValue)
+    {
+        float value = Mathf.Clamp01(normalizedValue);
+
+        if (_hpSlider != null)
+        {
+            _hpSlider.value = value;
+            return;
+        }
+
+        if (_hpImage != null)
+        {
+            _hpImage.fillAmount = value;
+        }
+    }
+
+    private void TryBindToActiveCharacter()
+    {
+        if (_isBound && _activeSo != null) return;
+
+        if (useGameSystemRuntime && GameSystem1.Instance != null)
+        {
+            SetCharactorSO(GameSystem1.Instance.RuntimeCharaSO ?? _charaSO);
+            return;
+        }
+
+        SetCharactorSO(_charaSO);
+    }
+
+    public void SetCharactorSO(CharactorSO charaSO)
+    {
+        if (_activeSo != null && _activeSo != charaSO)
+        {
+            _activeSo.OnHPChanged -= HandleHPChanged;
+        }
+
+        _activeSo = charaSO;
+        _isBound = _activeSo != null;
+
+        if (_activeSo != null)
+        {
+            _activeSo.OnHPChanged += HandleHPChanged;
+            UpdateHPBar(_activeSo.CurrentHPNormalized);
+        }
+    }
+}
