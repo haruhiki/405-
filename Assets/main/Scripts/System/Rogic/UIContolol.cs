@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 public class UIContolol : MonoBehaviour
 {
-private bool isUIEnabled = false;
+    private bool isUIEnabled = false;
 
     [Header("参照")]
     [SerializeField] private GameObject _uiObject;
@@ -32,7 +32,7 @@ private bool isUIEnabled = false;
     [SerializeField] private Slider _seSlider;
     [SerializeField] private Slider _noteSpeedSlider; // ノーツスピード倍率調整用スライダー
 
-    // 🚀【追加】現在のスピード倍率を保存する変数（新しく生成されるノーツ用）
+    // 現在のスピード倍率を保存する変数
     private float _currentNoteSpeedMultiplier = 1.0f;
     public float CurrentNoteSpeedMultiplier => _currentNoteSpeedMultiplier;
 
@@ -44,6 +44,20 @@ private bool isUIEnabled = false;
 
         // ノーツスピードスライダーの初期設定
         SliderDefoSet(); 
+
+        // BGMスライダーの初期設定
+        if(_bgmSlider != null)
+        {
+           _bgmSlider.value = _audioManager.bgmmasterVolume;
+           _bgmSlider.onValueChanged.AddListener((value) => _audioManager.SetBGMVolume(value));
+        }
+
+        //SEスライダーの初期設定
+        if(_seSlider != null)
+        {
+           _seSlider.value = _audioManager.masterVolume;
+           _seSlider.onValueChanged.AddListener((value) => _audioManager.SetMasterVolume(value));
+        }
     }
 
     private void OnDestroy()
@@ -141,6 +155,7 @@ private bool isUIEnabled = false;
         // すべてのノーツに倍率を即座に適用（もしあれば）
         foreach (NotesCon note in allNotes)
         {
+            //TODO:
             // 💡 NoteCon側にこのメソッドを実装して、スピードにかける設計にすると完璧だぜ！
             // note.SetNoteSpeedMultiplier(multiplier); 
         }

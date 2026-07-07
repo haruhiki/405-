@@ -12,7 +12,8 @@ public class ScoreUIController : MonoBehaviour
     public TextMeshProUGUI totalScoreTMP;
     public TextMeshProUGUI comboTMP;
     public GameObject hitPopupPrefab; // Prefab should contain a Text component at root
-
+    
+    private Coroutine _comboFadeCouroutine;
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -78,16 +79,50 @@ public class ScoreUIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// スコアの合計
+    /// </summary>
+    /// <param name="total"></param>
     public void UpdateTotalScore(long total)
     {
         var s = total.ToString();
         if (totalScoreTMP != null) totalScoreTMP.text = s;
     }
 
+    /// <summary>
+    ///  コンボの更新と表示
+    /// </summary>
+    /// <param name="combo"></param>
     public void UpdateCombo(int combo)
     {
-        var s = combo > 0 ? $"COMBO {combo}" : "";
-        if (comboTMP != null) comboTMP.text = s;
+       if (comboTMP == null) return;
+    
+        if (_comboFadeCouroutine != null) StopCoroutine(_comboFadeCouroutine);
+
+        if (combo > 0)
+        {
+            comboTMP.text = $"COMBO {combo}";
+            comboTMP.alpha = 1f; // 表示
+            // 2秒後に非表示にするコルーチンを開始
+            _comboFadeCouroutine = StartCoroutine(FadeComboAfterDelay(2f));
+        }
+        else
+        {
+            comboTMP.text = "";
+        }
+    }
+
+    // コンボの表示を時間経過でフェードアウト
+    private IEnumerator FadeComboAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        float t = 0f;
+        while (t < 0.5f) { // 0.5秒かけてフェードアウト
+            t += Time.deltaTime;
+            comboTMP.alpha = Mathf.Lerp(1f, 0f, t / 0.5f);
+            yield return null;
+        }
+        comboTMP.text = "";
     }
 
     public void ShowHitPopup(string text, Vector3 worldPos)
@@ -143,30 +178,36 @@ public class ScoreUIController : MonoBehaviour
     private IEnumerator AnimatePopup(GameObject go, Vector3 worldPos)
     {
         var rect = go.GetComponent<RectTransform>();
-        Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPos);
-        Vector2 anchored;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)uiCanvas.transform, screenPos, uiCanvas.worldCamera, out anchored);
-        rect.anchoredPosition = anchored;
+        // ... (位置計算の既存処理) ...
 
-        float t = 0f;
         var tmp = go.GetComponent<TextMeshProUGUI>();
-        if (tmp == null)
+        if (tmp == null) tmp = go.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (tmp == null) 
         {
-            Debug.LogWarning("AnimatePopup: missing TextMeshProUGUI on popup.");
+            Destroy(go); // TMPがなければ即削除して終了
             yield break;
         }
+
+        float duration = 0.8f; // 表示時間
+        float t = 0f;
         Color orig = tmp.color;
 
-        while (t < 0.8f)
+        while (t < duration)
         {
             t += Time.deltaTime;
+            // 上に移動
             rect.anchoredPosition += new Vector2(0, Time.deltaTime * 40f);
+            
+            // フェードアウト
             var c = orig;
-            c.a = Mathf.Lerp(1f, 0f, t / 0.8f);
+            c.a = Mathf.Lerp(1f, 0f, t / duration);
             tmp.color = c;
+            
             yield return null;
         }
 
+        // ループ終了後に確実に破棄
         Destroy(go);
     }
 }

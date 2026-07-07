@@ -208,6 +208,8 @@ public class NotesCon : MonoBehaviour
     {
         //そのままのダメージを入れてみる ->　のちに変更するかも
         GameSystem1.Instance.ApplyDamageToCharacter(misstakeDamage);
+        //ミス時にコンボ等リセット
+        ScoreManager.Instance.OnMiss();
         if (_isDestroyed) return;
         _isDestroyed = true;
         HideAllRenderers();

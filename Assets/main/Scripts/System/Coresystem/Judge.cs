@@ -268,7 +268,7 @@ public class Judge : MonoBehaviour
 
         if (note.GetRushCount() >= requiredRushHits)
         {
-            note.OnHit(); 
+            JudgePass(note, 0f);
         }
     }
 

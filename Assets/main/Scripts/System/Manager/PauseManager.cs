@@ -71,9 +71,7 @@ public class PauseManager : MonoBehaviour
 
         StartCoroutine(CountdownAndResume());
     }
-
-    // Immediate resume without countdown (useful for debugging)
-    public void ResumeImmediate()
+     public void ResumeImmediate()
     {
         if (!IsPaused) return;
         if (pausePanel != null) pausePanel.SetActive(false);
@@ -94,9 +92,14 @@ public class PauseManager : MonoBehaviour
 
         OnResumed?.Invoke();
     }
-
+    
+    /// <summary>
+    /// Countdown coroutine that shows countdown numbers and resumes the game after countdown finishes.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator CountdownAndResume()
     {
+        // カウントダウン処理
         if (countdownTMP != null)
         {
             countdownTMP.gameObject.SetActive(true);
@@ -109,19 +112,23 @@ public class PauseManager : MonoBehaviour
             countdownTMP.text = "GO!";
             yield return new WaitForSecondsRealtime(0.5f);
         }
-
+        
+        // カウントダウンパネルを非表示に
         if (countdownPanel != null) countdownPanel.SetActive(false);
+        //カウントダウンのテキストを非表示に
         if (countdownTMP != null) countdownTMP.gameObject.SetActive(false);
         else
         {
             // Ensure a short wait so the user sees the transition
             yield return new WaitForSecondsRealtime(0.1f);
         }
+        
 
         Time.timeScale = 1f;
-        AudioListener.pause = false;
         IsPaused = false;
 
+        if(AudioManager.Instance != null) { AudioManager.Instance.ResumeAll(); }
+        else AudioListener.pause = false;
         OnResumed?.Invoke();
     }
 
