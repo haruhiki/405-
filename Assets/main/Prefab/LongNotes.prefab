@@ -170,6 +170,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d10e272b06653c4c8005daaff497a00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NotesCon
+  leftTargetTransform: {fileID: 0}
+  rightTargetTransform: {fileID: 0}
+  rushStopThreshold: 0.88
+  misstakeDamage: 10
   trailObject: {fileID: 4644279745881760351}
   spriteRenderer: {fileID: 3175676354896772376}
   trailRenderer: {fileID: 1329936975726371203}
@@ -292,8 +296,8 @@ Transform:
   m_GameObject: {fileID: 8948010388237647290}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: -0.0104, z: 0}
+  m_LocalScale: {x: 1, y: 0.9793, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2211053916481110967}

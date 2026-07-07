@@ -799,8 +799,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MusicSelectUI
   stageList:
   - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
-  - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
-  - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
+  - {fileID: 11400000, guid: 8847bd635c9ed0a46873eca06abd870d, type: 2}
+  - {fileID: 11400000, guid: 88937e91a35d5e349b478fe429ab195c, type: 2}
   - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
   - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
   - {fileID: 11400000, guid: f68b50da8507baf46af8b4c4af0bc3ce, type: 2}
