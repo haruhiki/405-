@@ -1,0 +1,137 @@
+using System;
+using System.Runtime.CompilerServices;
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "Define", menuName = "Scriptable Objects/Define")]
+public class Define : ScriptableObject
+{
+    //各シーンを適当に洗い出しておく
+    //各シーンのステート管理
+    public enum SceneState
+    {
+        Title,    //0
+        Load,     //1
+        Select,   //2
+        Game,     //3
+        Result,   //4
+    }
+
+
+    [Header("ゲームロジック管理用")]
+    public bool isInGame;
+    public bool isSlideAnim;
+    public bool isEndGame;
+
+
+    [Header("操作検知用")]
+    public bool isInputDetected;
+    public bool isInputHold;
+    public bool isInputRush;
+
+    public bool isRightKey;
+    public bool isLeftKey;
+
+    public Vector2 inputScreenPos;
+
+    [Header("共通参照")]
+    public CharactorSO charactorSO;
+
+    [Header("SE設定")]
+    public string seCategory = "SE_SoundTap";
+    public SESound.SEDATA inputSE = SESound.SEDATA.Tap;
+    public SESound.SEDATA shortHitSE = SESound.SEDATA.Tap;
+    public SESound.SEDATA longHitSE = SESound.SEDATA.character;
+    public SESound.SEDATA rushHitSE = SESound.SEDATA.Tap;
+    public SESound.SEDATA missSE = SESound.SEDATA.System;
+
+    [Header("操作検知時のアクション")]
+    public Action TouchActionEvect; //操作時の各イベントをまとめて発行させる用
+
+    //キャラクター処理時のキー判別用検知イベント
+    public event Action RightKeyEvent;
+    public event Action LeftKeyEvent;
+
+    //ゲームロジックを外部で動かすためのイベントステート
+    public event Action<SceneState> gameState;
+
+    //ゲームステートイベント内に格納されたイベントを講読する。
+    public void CallGameStateEvent(SceneState state) { gameState?.Invoke(state); }
+
+    //画面タッチ時のイベント処理を講読する。
+    public void CallTouchEvent() { TouchActionEvect?.Invoke(); }
+
+
+    //初期化
+    public void Reset()
+    {
+        isInputDetected = false;
+        isInputHold = false;
+        isInputRush = false;
+        isEndGame = false;
+        isInGame = false;
+        isSlideAnim = false;
+        isRightKey = false;
+        isLeftKey = false;
+        inputScreenPos = Vector2.zero;
+    }
+
+
+    /// <summary> /// 入力検知用  /// </summary>
+    /// <param name="pos"></param>
+    /// <param name="down"></param>
+    /// <param name="stay"></param>
+    /// <param name="up"></param>
+    public void SetInput(Vector2 pos, bool down, bool stay, bool up)
+    {
+        inputScreenPos = pos;
+        isInputDetected = down;
+        isInputHold = stay;
+        isInputRush = up;
+
+        CallTouchEvent();
+    }
+
+    public void SetInputKey(bool rightHeld, bool leftHeld, bool rightPressed = false, bool leftPressed = false)
+    {
+        isRightKey = rightHeld;
+        isLeftKey = leftHeld;
+
+        if (leftPressed)  { LeftKeyEvent?.Invoke(); }
+        if (rightPressed) { RightKeyEvent?.Invoke(); }
+    }
+
+    public bool HasInput => isInputDetected || isInputHold || isInputRush;
+
+    public void PlayInputSE()
+    {
+        if (AudioManager.Instance == null) return;
+        AudioManager.Instance.PlaySE(seCategory, inputSE);
+    }
+
+    public void PlayNoteSE(NoteDate.NotesType noteType, bool hit)
+    {
+        if (AudioManager.Instance == null) return;
+
+        if (!hit)
+        {
+            AudioManager.Instance.PlaySE(seCategory, missSE);
+            return;
+        }
+
+        switch (noteType)
+        {
+            case NoteDate.NotesType.Short:
+                AudioManager.Instance.PlaySE(seCategory, shortHitSE);
+                break;
+            case NoteDate.NotesType.Long_Start:
+                AudioManager.Instance.PlaySE(seCategory, longHitSE);
+                break;
+            case NoteDate.NotesType.Rush:
+                AudioManager.Instance.PlaySE(seCategory, rushHitSE);
+                break;
+            default:
+                AudioManager.Instance.PlaySE(seCategory, shortHitSE);
+                break;
+        }
+    }
+}

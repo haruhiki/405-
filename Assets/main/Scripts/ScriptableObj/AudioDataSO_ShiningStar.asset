@@ -16,6 +16,6 @@ MonoBehaviour:
   artistName: "\u9B54\u738B\u9B42"
   bpm: 120
   audioClip: {fileID: 8300000, guid: 42265cb3683c1884f9fcaa8aa4f8016d, type: 3}
-  csvChartFile: {fileID: 0}
+  csvChartFile: {fileID: 4900000, guid: d4f200cdc9ef2754f974a6dd7d588f54, type: 3}
   notesobjSO: {fileID: 11400000, guid: 045eca0a65c66734c822d6730dfb97cb, type: 2}
   offsetSeconds: 0

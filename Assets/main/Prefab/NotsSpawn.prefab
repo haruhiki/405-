@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5722938030366491172
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2881404230555098555}
+  - component: {fileID: 3485488169961506187}
+  m_Layer: 0
+  m_Name: NotsSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2881404230555098555
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5722938030366491172}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.69448, y: -1.24533, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3485488169961506187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5722938030366491172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f8fb10b4c31614194c384464175939, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NotsSpawn
+  audioDataSO: {fileID: 11400000, guid: 63b3b42395c8225459ec161c1e65e4f5, type: 2}
+  notesSpeed: 5
+  preSpawnTime: 2
+  shortNotes: {fileID: 4840576891515199272, guid: ef626289d91b18a42b70ea45cb893be7, type: 3}
+  LongNotes: {fileID: 8061254861229451224, guid: aecf8fada6d1c8544af995b0b493b2c6, type: 3}
+  RushNotes: {fileID: 6809138255932206062, guid: 19c041121a8646245ac7c7654e5e9197, type: 3}
+  BothNotes: {fileID: 3008193956529401945, guid: 796c979725b66624381629a48e9e8601, type: 3}
+  spawnPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  leftTargetCircle: {fileID: 0}
+  rightTargetCircle: {fileID: 0}
+  autoSpawnEnabled: 1

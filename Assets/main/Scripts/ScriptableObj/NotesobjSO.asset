@@ -15,4 +15,524 @@ MonoBehaviour:
   bpm: 120
   offset: 4
   division: 4
-  notes: []
+  notes:
+  - targetTime: 5.867
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 7.04
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 8.192
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 8.597
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 8.96
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 9.365
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 9.557
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 9.984
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 10.752
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 11.584
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 11.989
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 12.16
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 13.035
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 14.123
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 14.315
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 15.424
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 16.085
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 16.875
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 17.472
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 17.664
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 17.813
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.027
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 18.219
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19.136
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19.563
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 19.733
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 20.096
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 20.8
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 21.227
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 21.397
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 22.165
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 22.955
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 23.744
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 24.512
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 25.216
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 25.963
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 26.005
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 26.624
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 26.773
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 27.499
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 28.224
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 28.608
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 29.013
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 29.355
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 29.781
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 30.144
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 30.549
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 30.912
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 31.275
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 32.747
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 33.536
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 33.728
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 34.091
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 34.304
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 34.667
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 34.837
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 35.499
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 36.693
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 36.864
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 38.187
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 38.848
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 39.467
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 40.213
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 40.555
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 40.747
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 40.96
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 41.536
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 41.728
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 41.92
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 42.261
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 43.627
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 43.797
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 44.139
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 44.971
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 45.12
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 45.376
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 45.547
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 45.653
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 45.952
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 48.277
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 48.512
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 49.451
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 51.008
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 51.52
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 52.373
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 53.163
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 54.144
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 54.677
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 55.061
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 55.424
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 56.427
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 57.067
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 58.347
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 58.795
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 58.944
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 59.349
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 60.864
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 63.445
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 65.152
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 66.901
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 3
+  - targetTime: 67.733
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 68.757
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 69.248
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 69.824
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 69.995
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 70.208
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 70.379
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 70.549
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 70.827
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 71.573
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 72.32
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 72.704
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 73.109
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 73.813
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 74.176
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 74.603
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 74.773
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 74.923
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 75.093
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 75.861
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 76.693
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 77.696
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 78.4
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 78.869
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 0
+  - targetTime: 79.531
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 80.811
+    lane: 1
+    targetPosition: {x: 3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 81.109
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 1
+  - targetTime: 82.432
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 2
+  - targetTime: 83.029
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
+  - targetTime: 84.907
+    lane: 0
+    targetPosition: {x: -3, y: -1, z: 0}
+    noteType: 4
