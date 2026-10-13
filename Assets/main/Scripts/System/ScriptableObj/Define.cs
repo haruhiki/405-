@@ -16,6 +16,18 @@ public class Define : ScriptableObject
         Result,   //4
     }
 
+    //各レーンの名称
+    public enum LaneTyoe
+    {
+        Lane1 = 1,
+        Lane2 = 2,
+        Lane3 = 3,
+        Lane4 = 4,
+        Lane5 = 5,
+    };
+    //レーンタイプの初期値を設定
+    public LaneTyoe laneType = LaneTyoe.Lane3;
+
 
     [Header("ゲームロジック管理用")]
     public bool isInGame;
@@ -31,7 +43,17 @@ public class Define : ScriptableObject
     public bool isRightKey;
     public bool isLeftKey;
 
+    [Header("操作検知-> 改善案_1ver")]
+    public bool isSpaceKey;    //通常タップ
+    
+    /// <summary> /// 各方向キー操作検知用 /// </summary>
+    public bool isLeftArrowKey;   // 左矢印キー
+    public bool isRightArrowKey;  // 右矢印キー
+    public bool isUpArrowKey;     // 上矢印キー
+    public bool isDownArrowKey;   // 下矢印キー
+
     public Vector2 inputScreenPos;
+
 
     [Header("共通参照")]
     public CharactorSO charactorSO;
