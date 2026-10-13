@@ -291,6 +291,7 @@ public class Judge : MonoBehaviour
     private void HandleMissProcessing(NotesCon targetNote, float timeDiff)
     {
         if (targetNote == null) return;
+        //ミス処理判定とミス時のSE再生を行い、キャラクターにダメージを与える
         _defineSO.PlayNoteSE(targetNote.GetNoteType(), false);
         targetNote.OnMiss();
 
@@ -302,7 +303,7 @@ public class Judge : MonoBehaviour
         if (ScoreManager.Instance != null) ScoreManager.Instance.OnMiss();
     }
 
-    // キャラクターの移動をノーツの位置に合わせるメソッドs
+    // キャラクターの移動をノーツの位置に合わせるメソッド
     private void MoveCharacterToNotePosition(Vector3 position)
     {
         if (_charactor != null) _charactor.MoveToPoint(position);
