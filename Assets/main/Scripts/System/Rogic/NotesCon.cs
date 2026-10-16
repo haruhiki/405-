@@ -49,6 +49,7 @@ public class NotesCon : MonoBehaviour
 
     private void Start()
     {
+        // SpriteRenderer と TrailRenderer がアタッチされていない場合は自動取得
         if (spriteRenderer == null) { spriteRenderer = GetComponent<SpriteRenderer>(); }
         if (trailRenderer == null && trailObject != null)
         {
@@ -57,6 +58,7 @@ public class NotesCon : MonoBehaviour
         CaptureOriginalColors();
     }
 
+    // ノーツの初期化時に元の色をキャプチャしておく
     private void CaptureOriginalColors()
     {
         if (spriteRenderer != null) originalSpriteColor = spriteRenderer.color;
@@ -65,6 +67,7 @@ public class NotesCon : MonoBehaviour
         if (TailRend != null) originalTailColor = TailRend.color;
     }
 
+    // ノーツの初期化メソッド
     public void Init(NoteDate.Notes data, float duration, Vector3 realTarget)
     {
         myData = data;
@@ -195,6 +198,8 @@ public class NotesCon : MonoBehaviour
 
     public void AddRushCount() => currentRushCount++;
     public int GetRushCount() => currentRushCount;
+     
+    //  --- ヒット時の処理 ---
 
     public void OnHit()
     {
@@ -204,6 +209,7 @@ public class NotesCon : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    //  --- ミス時の処理 ---
     public void OnMiss()
     {
         //そのままのダメージを入れてみる ->　のちに変更するかも
@@ -216,6 +222,7 @@ public class NotesCon : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    //  --- レンダラーを非表示にするメソッド ---
     private void HideAllRenderers()
     {
         if (spriteRenderer != null) spriteRenderer.enabled = false;
@@ -224,6 +231,7 @@ public class NotesCon : MonoBehaviour
         if (TailRend != null)       TailRend.enabled = false;
     }
 
+    // ロングノーツの終了時間を設定するメソッド
     public void SetEndTime(float time)
     {
         endTime = time;
@@ -232,6 +240,7 @@ public class NotesCon : MonoBehaviour
         SetTrailHeight(longDuration * notesSpeed);
     }
 
+    // ロングノーツのトレイルの高さを設定するメソッド
     private void SetTrailHeight(float height)
     {
         if (trailObject == null) return;
@@ -240,6 +249,7 @@ public class NotesCon : MonoBehaviour
         trailObject.localScale = localScale;
     }
 
+    //
     public void SetHoldVisual(bool holding)
     {
         if (holding) hasStartedHolding = true;
