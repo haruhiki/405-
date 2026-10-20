@@ -36,15 +36,12 @@ public class SceneManage : MonoBehaviour
 
     }
 
-    /// <summary> /// �V�[���̐؂�ւ��Ɗe���� -> �V�[��ID�Q�� /// </summary>
-    /// <param name="SceneID"></param>
+    //シーンの遷移処理
     public void SceneChange(int SceneID) 
     {
-        //�e�V�[������
         switch (SceneID)
         {
             case (int)Define.SceneState.Title:
-                //�e�V�[�����ƂɈႤ�J�ڃA�N�V�������܂Ƃ߂�
                 ChangeEvent(SceneID);
                 SceneManager.LoadScene(SceneID);
                 break;
@@ -71,7 +68,7 @@ public class SceneManage : MonoBehaviour
         }
     }
 
-    //�e�V�[���̐؂�ւ����C�x���g
+
     private void ChangeEvent(int SceneID) 
     {
         if(_defineSO != null) { return; }

@@ -2,23 +2,25 @@ using UnityEngine;
 public class Judge : MonoBehaviour
 {
     [Header("設定")]
-    [SerializeField] private int myLane = 0;
-    [SerializeField] private float perfectWindow = 0.05f;
-    [SerializeField] private float greatWindow = 0.12f;
-    [SerializeField] private float badWindow = 0.20f;
-    [SerializeField] private float misstakeDamage = 10.0f;
-    [SerializeField] private float longStartGrace = 0.18f;
+    [SerializeField] private int myLane = 0;                //判定対象のレーン番号
+    [SerializeField] private float perfectWindow = 0.05f;   //パーフェクト判定ウィンドウ   
+    [SerializeField] private float greatWindow = 0.10f;     //グレート判定ウィンドウ
+    [SerializeField] private float badWindow = 0.20f;       //バッド判定ウィンドウ
+    [SerializeField] private float misstakeDamage = 10.0f;  //ミス時のキャラクターダメージ
+    [SerializeField] private float longStartGrace = 0.18f;  //ロングノーツの開始判定猶予時間
     
     [Tooltip("Rushノーツを消すのに必要な連打回数")]
     [SerializeField] private int requiredRushHits = 5; 
 
     [Header("参照")]
+    //各参照用に必要なSO
     [SerializeField] private Define _defineSO;
     [SerializeField] private Charactor _charactor;
 
-    private bool isLongPress;
-    private NotesCon currentLongNote;
-    private bool isLoopSEPlaying = false; 
+    //ロングノーツの判定用変数
+    private bool isLongPress;             // ロングノーツ判定中かどうかのフラグ
+    private NotesCon currentLongNote;     // 現在判定中のロングノーツ
+    private bool isLoopSEPlaying = false; // ロングノーツの判定中にループSEが再生中かどうかのフラグ
 
     private void LateUpdate()
     {
@@ -27,6 +29,7 @@ public class Judge : MonoBehaviour
 
         if (_defineSO == null) return;
 
+        // ロングノーツ判定中で、かつ現在のロングノーツが存在しない場合はリセット
         if (isLongPress && currentLongNote == null)
         {
             ResetLongPressState();
@@ -116,15 +119,17 @@ public class Judge : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// 最も近いノーツを取得するメソッド（Rushノーツは除外）
-    /// </summary>
+    /// <summary> /// 最も近いノーツを取得するメソッド（Rushノーツは除外） /// </summary>
     /// <returns></returns>
     private NotesCon GetNearestNote()
     {
         NotesCon[] notes = FindObjectsByType<NotesCon>(FindObjectsSortMode.None);
         NotesCon best = null;
+
+        // 初期値としてバッド判定ウィンドウを設定
         float minDiff = badWindow;
+
+        //現在の再生時間を取得
         float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : 0f;
 
         foreach (var n in notes)
@@ -133,7 +138,8 @@ public class Judge : MonoBehaviour
             
             if (n.GetNoteType() == NoteDate.NotesType.Rush) continue;
             if (isLongPress && n == currentLongNote) continue;
-
+            
+            //TODO:仕様変更後はラッシュノーツの存在が消えるので、削除するが一応おいておく
             // 【修正】同時押し（Both）ノーツは中央にあるため、レーンに関係なく引き受ける
             if (n.GetNoteType() != NoteDate.NotesType.Both)
             {
@@ -141,10 +147,7 @@ public class Judge : MonoBehaviour
                 if (n.GetLane() != myLane) continue;
             }
 
-            if (n.GetNoteType() == NoteDate.NotesType.Long_Start && currentTime >= n.GetTargetTime() && currentTime <= n.GetEndTime())
-            {
-                return n;
-            }
+            if (n.GetNoteType() == NoteDate.NotesType.Long_Start && currentTime >= n.GetTargetTime() && currentTime <= n.GetEndTime()) {return n; }
 
             float diff = Mathf.Abs(n.GetTargetTime() - currentTime);
             if (diff < minDiff)
@@ -156,9 +159,7 @@ public class Judge : MonoBehaviour
         return best;
     }
 
-    /// <summary>
-    /// ショートノーツの判定処理
-    /// </summary>
+    /// <summary> /// ショートノーツの判定処理 /// </summary>
     /// <param name="note"></param>
     /// <param name="timeDiff"></param>
     private void ProcessShortHit(NotesCon note, float timeDiff)
@@ -174,9 +175,7 @@ public class Judge : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ロングノーツの判定処理
-    /// </summary>
+    /// <summary> /// ロングノーツの判定処理 /// </summary>
     /// <param name="note"></param>
     /// <param name="currentTime"></param>
     /// <param name="isDetected"></param>
@@ -192,13 +191,11 @@ public class Judge : MonoBehaviour
             }
             return;
         }
-
+        
+        //ロングノーツの見た目をホールド中は更新する
         note.SetHoldVisual(isMyLaneKey && isHold);
 
-        if (isMyLaneKey && isHold && !isLoopSEPlaying)
-        {
-            PlayLongPressSE();
-        }
+        if (isMyLaneKey && isHold && !isLoopSEPlaying) { PlayLongPressSE(); }
 
         if (currentTime >= note.GetEndTime() - greatWindow)
         {
@@ -222,9 +219,7 @@ public class Judge : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ロングノーツの判定開始処理
-    /// </summary>
+    /// <summary>/// ロングノーツの判定開始処理　/// </summary>
     /// <param name="note"></param>
     private void BeginLongPress(NotesCon note)
     {
@@ -235,9 +230,7 @@ public class Judge : MonoBehaviour
         PlayLongPressSE();
     }
 
-    /// <summary>
-    ///  ロングノーツの判定終了処理
-    /// </summary>
+    /// <summary>　///  ロングノーツの判定終了処理　/// </summary>
     /// <param name="note"></param>
     /// <param name="currentTime"></param>
     private void FinishLongPress(NotesCon note, float currentTime)
@@ -247,11 +240,10 @@ public class Judge : MonoBehaviour
         
         if (endDiff <= greatWindow) JudgePass(note, endDiff);
         else HandleMissProcessing(note, endDiff);
-
         ResetLongPressState();
     }
     
-    /// ロングノーツの状態をリセットするメソッド
+    /// ロングノーツの状態をリセット
     private void ResetLongPressState()
     {
         if (currentLongNote != null) currentLongNote.SetHoldVisual(false);
@@ -260,6 +252,7 @@ public class Judge : MonoBehaviour
         currentLongNote = null;
     }
     
+    //TODO:仕様変更後はラッシュノーツの存在が消えるので、削除するが一応おいておく
     /// Rushノーツの判定処理
     private void ProcessRushHit(NotesCon note)
     {
@@ -302,7 +295,9 @@ public class Judge : MonoBehaviour
         // notify score manager of miss (resets combo)
         if (ScoreManager.Instance != null) ScoreManager.Instance.OnMiss();
     }
-
+    
+    //TODO:キャラクターの移動に関してはキャラクター側で行いたいのでこちらは削除する予定
+    //Editor制作完了後、キャラクターの移動処理もまとめて変更するのでその時に削除
     // キャラクターの移動をノーツの位置に合わせるメソッド
     private void MoveCharacterToNotePosition(Vector3 position)
     {

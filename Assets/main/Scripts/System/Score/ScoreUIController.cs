@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class ScoreUIController : MonoBehaviour
 {
+    // Singleton instance
     public static ScoreUIController Instance { get; private set; }
 
     [Header("References")]
@@ -27,6 +28,7 @@ public class ScoreUIController : MonoBehaviour
         EnsureFixedScoreUI();
     }
 
+    //UIのキャンバスが存在しない場合は作成する
     private void EnsureUICanvas()
     {
         if (uiCanvas != null) return;
@@ -41,11 +43,14 @@ public class ScoreUIController : MonoBehaviour
             canvasGO.AddComponent<GraphicRaycaster>();
         }
     }
-
+   
+    //スコアとコンボのUIを固定で表示するための処理
     private void EnsureFixedScoreUI()
     {
+        //UIのキャンバスが存在しない場合はreturn
         if (uiCanvas == null) return;
 
+        //totalScoreTMPとcomboTMPが存在しない場合は作成する
         if (totalScoreTMP == null)
         {
             var scoreGO = new GameObject("TotalScoreText");
@@ -79,9 +84,7 @@ public class ScoreUIController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// スコアの合計
-    /// </summary>
+    /// <summary>  /// スコアの合計を更新する　/// </summary>
     /// <param name="total"></param>
     public void UpdateTotalScore(long total)
     {
@@ -89,9 +92,7 @@ public class ScoreUIController : MonoBehaviour
         if (totalScoreTMP != null) totalScoreTMP.text = s;
     }
 
-    /// <summary>
-    ///  コンボの更新と表示
-    /// </summary>
+    /// <summary>　///  コンボの更新と表示　/// </summary>
     /// <param name="combo"></param>
     public void UpdateCombo(int combo)
     {
@@ -125,6 +126,7 @@ public class ScoreUIController : MonoBehaviour
         comboTMP.text = "";
     }
 
+    /// <summary>  /// ヒット時のスコアポップアップを表示する　/// </summary>
     public void ShowHitPopup(string text, Vector3 worldPos)
     {
         if (uiCanvas == null)
@@ -166,13 +168,11 @@ public class ScoreUIController : MonoBehaviour
         StartCoroutine(AnimatePopup(go, worldPos));
     }
 
+    /// <summary>  /// コンボが途切れた時の処理　/// </summary>
     public void ShowComboBreak()
     {
         // Optional: play a small animation or sound for combo break
-        if (comboTMP != null)
-        {
-            comboTMP.text = "";
-        }
+        if (comboTMP != null) { comboTMP.text = ""; }
     }
 
     private IEnumerator AnimatePopup(GameObject go, Vector3 worldPos)

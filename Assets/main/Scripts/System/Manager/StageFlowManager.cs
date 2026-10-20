@@ -22,29 +22,37 @@ public class StageFlowManager : MonoBehaviour
     }
 
     [Header("Scene Names")]
+    //各シーンの名前をInspectorで設定できるようにする
     [SerializeField] private string selectSceneName = "MusicSelect";
     [SerializeField] private string gameSceneName = "SampleScene";
     [SerializeField] private string resultSceneName = "Result";
 
     [Header("Stage Flow")]
+    //ステージクリア後の遷移までの時間をInspectorで設定できるようにする
     [SerializeField] private float clearDelaySeconds = 0.2f;
 
     [Header("Result Overlay")]
+    //ステージクリア・ゲームオーバー時のオーバーレイ表示の設定
     [SerializeField] private string resultOverlayName = "StageResultOverlay";
     [SerializeField] private Color clearColor = new Color(0.4f, 1f, 0.4f);
     [SerializeField] private Color gameOverColor = new Color(1f, 0.3f, 0.3f);
     [SerializeField] private int resultFontSize = 80;
 
+    //ステージの選択と結果の管理
     public StageDataSO SelectedStage { get; private set; }
     public StageResultData LastResult { get; private set; }
 
-    private bool _stageStarted;
-    private bool _resultTransitionTriggered;
-    private float _transitionTimer;
+    //ステージの進行状況の管理
+    private bool _stageStarted;                 //ステージが開始されたかどうかのフラグ
+    private bool _resultTransitionTriggered;    //ステージ終了後の遷移がトリガーされたかどうかのフラグ
+    private float _transitionTimer;             //ステージ終了後の遷移までの時間を計測するタイマー
 
+    //オーバーレイ表示の管理
     private GameObject _resultOverlay;
+    //オーバーレイ表示のテキストコンポーネント
     private TextMeshProUGUI _resultOverlayTMP;
 
+    //ステージがアクティブかどうかを判定するプロパティ
     public bool IsStageActive => _stageStarted && !_resultTransitionTriggered;
 
     private void Awake()
@@ -62,20 +70,26 @@ public class StageFlowManager : MonoBehaviour
 
     private void OnEnable()
     {
+        //sceneLoadedイベントにOnSceneLoadedメソッドを登録
+        //シーン切り替え検出を行うために必要
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
+        //sceneLoadedイベントからOnSceneLoadedメソッドを解除
+        //後々メモリゴミになるため削除
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Update()
     {
+        //ステージがアクティブでない場合は処理を行わない
         if (!_stageStarted || _resultTransitionTriggered) return;
 
         if (GameSystem1.Instance != null && GameSystem1.Instance.IsGameOver())
         {
+            // ゲームオーバー条件を満たした場合、ステージを終了する
             FinishStage(false, "HP_ZERO");
             return;
         }
@@ -93,6 +107,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    //ステージの選択
     public void SelectStage(StageDataSO stage)
     {
         SelectedStage = stage;
@@ -120,14 +135,18 @@ public class StageFlowManager : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+    //ステージ終了後にセレクトシーンに戻る
     public void ReturnToSelectScene()
     {
+        //各状態をリセット
         _stageStarted = false;
         _resultTransitionTriggered = false;
         _transitionTimer = 0f;
+        //セレクトシーンに戻る
         SceneManager.LoadScene(selectSceneName);
     }
 
+    //シーンがロードされたときに呼ばれるメソッド
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name != gameSceneName) return;
@@ -139,12 +158,15 @@ public class StageFlowManager : MonoBehaviour
         BeginStage();
     }
 
+    //ステージ開始処理
     private void BeginStage()
     {
+        //ステージ開始フラグを立てる
         _stageStarted = true;
         _resultTransitionTriggered = false;
         _transitionTimer = 0f;
 
+        //ステージ開始時に必要なシステムを初期化
         EnsureRuntimeSystems();
 
         if (GameSystem1.Instance != null)
@@ -166,6 +188,7 @@ public class StageFlowManager : MonoBehaviour
         Debug.Log($"[StageFlow] Stage started: {SelectedStage?.DisplayName}");
     }
 
+    //ステージ開始時に必要なシステムを初期化するメソッド
     private void EnsureRuntimeSystems()
     {
         if (GameSystem1.Instance == null)
@@ -180,19 +203,23 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    //ステージ終了処理
     public void FinishStage(bool isClear, string reason)
     {
+        //ステージ終了後の遷移がすでにトリガーされている場合は処理を行わない
         if (_resultTransitionTriggered) return;
 
         _resultTransitionTriggered = true;
         _transitionTimer = clearDelaySeconds;
 
+        //ステージ終了時に必要なシステムを初期化
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.BGMStop();
         }
 
         float hpRatio = 0f;
+        // GameSystem1のインスタンスが存在する場合、現在のHP割合を取得
         if (GameSystem1.Instance != null)
         {
             hpRatio = GameSystem1.Instance.GetCurrentHPPercent();
@@ -203,6 +230,7 @@ public class StageFlowManager : MonoBehaviour
         ShowResultOverlay(isClear);
     }
 
+    //ステージ終了後の遷移処理
     private void FindOrCreateResultOverlay()
     {
         if (_resultOverlay != null) return;
@@ -248,6 +276,7 @@ public class StageFlowManager : MonoBehaviour
         _resultOverlay.SetActive(false);
     }
 
+    //ステージ終了後のオーバーレイ表示を行うメソッド
     private void ShowResultOverlay(bool isClear)
     {
         if (_resultOverlay == null) FindOrCreateResultOverlay();
@@ -261,6 +290,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    //ステージ終了後のオーバーレイ表示を非表示にするメソッド
     private void HideResultOverlay()
     {
         if (_resultOverlay != null)
@@ -270,6 +300,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    //ステージ終了後の遷移処理を行うメソッド
     private void LateUpdate()
     {
         if (!_resultTransitionTriggered) return;
@@ -285,6 +316,7 @@ public class StageFlowManager : MonoBehaviour
     }
 }
 
+//ステージ結果データを保持するクラス
 [Serializable]
 public class StageResultData
 {

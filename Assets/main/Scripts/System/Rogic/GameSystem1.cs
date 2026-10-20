@@ -9,8 +9,7 @@ public class GameSystem1 : MonoBehaviour
 
     public float CurrentHPPercent => RuntimeCharaSO != null ? RuntimeCharaSO.CurrentHPNormalized : (_charaSO != null ? _charaSO.CurrentHPNormalized : 0f);
 
-    //�V���O���g���ŃV�X�e�����̒P���ۏ�
-    //�^�C�g�����烊�U���g(�G���h)�܂ŃV�[�����ɂ����Ƃ�
+    // Singleton pattern implementation
     #region singleton
     private static GameSystem1 _instance;
     public static GameSystem1 Instance
@@ -29,6 +28,7 @@ public class GameSystem1 : MonoBehaviour
 
     private void Awake()
     {
+        // Ensure that only one instance of GameSystem1 exists
         if (_instance == null)
         {
             _instance = this;
