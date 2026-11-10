@@ -85,6 +85,7 @@ public class ChretCreateManager : MonoBehaviour
         lastCheckedTime = currentTime;
     }
 
+    /// <summary> /// 譜面の再生・停止を制御するメソッド /// </summary>
     private void HandlePlaybackCon()
     {
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
@@ -101,6 +102,7 @@ public class ChretCreateManager : MonoBehaviour
         }
     }
 
+    /// <summary> /// 時間をスキップするメソッド /// </summary>
     private void HandleTimeCon()
     {
         if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
@@ -122,6 +124,7 @@ public class ChretCreateManager : MonoBehaviour
         }
     }
 
+    /// <summary> /// スピードを制御するメソッド /// </summary>
     private void HandleSpeedControls()
     {
         if (Keyboard.current.upArrowKey.wasPressedThisFrame)
@@ -134,6 +137,7 @@ public class ChretCreateManager : MonoBehaviour
         }
     }
 
+    /// <summary> /// 録音モードでのノーツ生成を処理するメソッド /// </summary>
     private void HandleRecording()
     {
         float currentTime = AudioManager.Instance.GetCurrentTime();
@@ -251,7 +255,12 @@ public class ChretCreateManager : MonoBehaviour
             }
         }
     }
-
+    
+    /// <summary>
+    /// ラッシュノーツ（連打）：押している間だけ自動で生成する
+    /// </summary>
+    /// <param name="lane"></param>
+    /// <param name="key"></param>
     private void ProcessRushKeyRec(int lane, KeyControl key)
     {
         float currentTime = AudioManager.Instance.GetCurrentTime();
@@ -290,6 +299,16 @@ public class ChretCreateManager : MonoBehaviour
         SpawnSinglePreview(rushNotePrefab, lane, time, NoteDate.NotesType.Rush, spawnPos, targetPos, 0f);
     }
 
+    /// <summary>
+    /// 単一のプレビューノーツを生成するメソッド
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="lane"></param>
+    /// <param name="recordTime"></param>
+    /// <param name="noteType"></param>
+    /// <param name="spawnPos"></param>
+    /// <param name="targetPos"></param>
+    /// <param name="longDuration"></param>
     private void SpawnSinglePreview(GameObject prefab, int lane, float recordTime, NoteDate.NotesType noteType, Vector3 spawnPos, Vector3 targetPos, float longDuration)
     {
         if (prefab == null) return;
@@ -372,6 +391,7 @@ public class ChretCreateManager : MonoBehaviour
             playbackIndex++;
         }
     }
+
 
     private void ResetPlaybackIndexToTime(float time)
     {

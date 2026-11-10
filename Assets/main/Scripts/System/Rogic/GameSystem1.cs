@@ -2,15 +2,14 @@ using UnityEngine;
 
 public class GameSystem1 : MonoBehaviour
 {
-    [SerializeField] private Define _defineSO;         // �ϐ��܂Ƃ߂Ă� -> SO = �X�N���v�^�u���I�u�W�F�N�g
+    [SerializeField] private Define _defineSO;         //ゲーム全体の定義を保持するScriptableObject
     [SerializeField] private CharactorSO _charaSO;
 
     public CharactorSO RuntimeCharaSO { get; private set; }
 
     public float CurrentHPPercent => RuntimeCharaSO != null ? RuntimeCharaSO.CurrentHPNormalized : (_charaSO != null ? _charaSO.CurrentHPNormalized : 0f);
 
-    //�V���O���g���ŃV�X�e�����̒P���ۏ�
-    //�^�C�g�����烊�U���g(�G���h)�܂ŃV�[�����ɂ����Ƃ�
+    // ゲームが一時停止中かどうかを示すプロパティ
     #region singleton
     private static GameSystem1 _instance;
     public static GameSystem1 Instance
@@ -46,7 +45,8 @@ public class GameSystem1 : MonoBehaviour
     {
         if (_defineSO == null)
         {
-            Debug.LogWarning("[GameSystem1] Define SO �� Inspector �Őݒ肳��Ă��܂���B");
+            // Define SO がインスペクターで設定されていない場合の警告
+            Debug.LogWarning("[GameSystem1] Define SO is not set in the inspector.");
         }
 
         ResetRuntimeCharacter();
@@ -86,23 +86,24 @@ public class GameSystem1 : MonoBehaviour
         }
     }
 
-    // �Q�[���J�n���W�b�N
+    // ゲーム開始時に呼び出されるメソッド
     private void InGameStart()
     {
         if (_defineSO == null) return;
         _defineSO.isInGame = true;
     }
 
-    // �Q�[���I�����W�b�N
+    // ゲーム終了時に呼び出されるメソッド
     public void OutGameEnd()
     {
         if (_defineSO != null && _defineSO.isEndGame)
         {
-            // �S�Ẵt���O��������
+            //_define.SOで定義されているフラグの初期化を行う
             _defineSO.Reset();
         }
     }
-
+    
+    // キャラクターにダメージを与えるメソッド
     public float ApplyDamageToCharacter(float damage)
     {
         if (RuntimeCharaSO != null)
@@ -122,6 +123,7 @@ public class GameSystem1 : MonoBehaviour
         return 0f;
     }
 
+    // ゲームオーバーかどうかを判定するメソッド
     public bool IsGameOver()
     {
         if (RuntimeCharaSO != null)
@@ -132,6 +134,7 @@ public class GameSystem1 : MonoBehaviour
         return _charaSO != null && _charaSO.chCurrentState;
     }
 
+    // 現在のHPの割合を取得するメソッド
     public float GetCurrentHPPercent()
     {
         return CurrentHPPercent;

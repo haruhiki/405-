@@ -11,16 +11,22 @@ public class MusicSelectUI : MonoBehaviour
     [SerializeField] private Image jacketImage;
     [SerializeField] private TextMeshProUGUI titleText;
 
+    /// 現在選択されている曲のインデックス
     private int _currentIndex = 0;
-
+    
+    /// <summary> /// 初期化処理
     private void Start() => RefreshUI();
 
-    public void OnClickUp() {
+    /// <summary> /// 上ボタンが押されたときの処理
+    public void OnClickUp()
+    {
         _currentIndex = (_currentIndex - 1 + stageList.Count) % stageList.Count;
         RefreshUI();
     }
 
-    public void OnClickDown() {
+    /// <summary> /// 下ボタンが押されたときの処理
+    public void OnClickDown() 
+    {
         _currentIndex = (_currentIndex + 1) % stageList.Count;
         RefreshUI();
     }
@@ -42,11 +48,13 @@ public class MusicSelectUI : MonoBehaviour
         StageDataSO currentData = stageList[_currentIndex];
         StageFlowManager.Instance.SelectStage(currentData);
         
+        // ジャケット画像を更新（フェードイン・フェードアウト）
         jacketImage.DOFade(0f, 0.1f).OnComplete(() => {
             jacketImage.sprite = currentData.backgroundSprite;
             jacketImage.DOFade(1f, 0.1f);
         });
         
+        // 曲名を更新
         if (titleText != null) titleText.text = currentData.DisplayName;
     }
 }

@@ -5,7 +5,7 @@ using System.Collections;
 public class SceneManage : MonoBehaviour
 {
 
-    //�t���O�Ǘ�SO
+    /// <summary> /// シーン遷移を管理するクラス /// </summary>
     [SerializeField] private Define _defineSO;
 
     public void LoadSelectScene()
@@ -18,13 +18,13 @@ public class SceneManage : MonoBehaviour
         SceneManager.LoadScene((int)Define.SceneState.Result);
     }
 
-    //�C�x���g�o�^
+    /// <summary> /// シーン遷移を管理するクラス /// </summary>
     private void OnEnable()
     {
         
     }
 
-    //TODO:��� -> �C�x���g�̓o�^����(�G���[�̌����ɂȂ邩��)
+    /// <summary> /// シーン遷移を管理するクラス /// </summary>
     private void OnDisable()
     {
         
@@ -36,15 +36,15 @@ public class SceneManage : MonoBehaviour
 
     }
 
-    /// <summary> /// �V�[���̐؂�ւ��Ɗe���� -> �V�[��ID�Q�� /// </summary>
+    /// <summary> /// シーンを変更する /// </summary>
     /// <param name="SceneID"></param>
     public void SceneChange(int SceneID) 
     {
-        //�e�V�[������
+        // e V [      
         switch (SceneID)
         {
             case (int)Define.SceneState.Title:
-                //�e�V�[�����ƂɈႤ�J�ڃA�N�V�������܂Ƃ߂�
+                // e V [     ƂɈႤ J ڃA N V       ܂Ƃ߂ 
                 ChangeEvent(SceneID);
                 SceneManager.LoadScene(SceneID);
                 break;
@@ -71,23 +71,19 @@ public class SceneManage : MonoBehaviour
         }
     }
 
-    //�e�V�[���̐؂�ւ����C�x���g
+    /// <summary> /// シーン遷移時のイベントを変更する /// </summary>
     private void ChangeEvent(int SceneID) 
     {
         if(_defineSO != null) { return; }
-        //�V�[���J�ڃA�j���[�V����
-        
-
+        //TODO:ここでシーン遷移時のイベントを変更する処理を追加する
     }
 
-    //�񓯊������p�̃V�[�����[�h
+    /// <summary> /// 非同期でシーンをロードする /// </summary>
     private IEnumerator LoadAsync(int SceneID)
     {
-        
-        //�񓯊������p
         SceneManager.LoadSceneAsync(SceneID);
 
-        //TODO:���[�h���̉�������̏���������
+        //TODO:ここで非同期ロード中の処理を追加することができる
 
 
         yield return SceneID;

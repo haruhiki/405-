@@ -93,6 +93,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    /// 選択されたステージを設定するメソッド
     public void SelectStage(StageDataSO stage)
     {
         SelectedStage = stage;
@@ -100,12 +101,14 @@ public class StageFlowManager : MonoBehaviour
         _stageStarted = false;
         _resultTransitionTriggered = false;
         _transitionTimer = 0f;
-
+        
         Debug.Log($"[StageFlow] Stage selected: {stage?.DisplayName ?? "(none)"}");
     }
 
+    /// ゲームシーンに遷移して、選択されたステージを開始するメソッド
     public void StartSelectedStage()
     {
+        // 選択されたステージがない場合は警告を出して処理を中断
         if (SelectedStage == null)
         {
             Debug.LogWarning("[StageFlow] No stage is selected.");
@@ -120,6 +123,7 @@ public class StageFlowManager : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+    // ゲームシーンから選曲シーンに戻るメソッド
     public void ReturnToSelectScene()
     {
         _stageStarted = false;
@@ -128,6 +132,7 @@ public class StageFlowManager : MonoBehaviour
         SceneManager.LoadScene(selectSceneName);
     }
 
+    /// ステージ結果オーバーレイを作成または取得する内部メソッド
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name != gameSceneName) return;
@@ -139,6 +144,7 @@ public class StageFlowManager : MonoBehaviour
         BeginStage();
     }
 
+    /// ステージを開始する内部メソッド
     private void BeginStage()
     {
         _stageStarted = true;
@@ -166,6 +172,7 @@ public class StageFlowManager : MonoBehaviour
         Debug.Log($"[StageFlow] Stage started: {SelectedStage?.DisplayName}");
     }
 
+    /// ステージを終了する内部メソッド
     private void EnsureRuntimeSystems()
     {
         if (GameSystem1.Instance == null)
@@ -173,6 +180,7 @@ public class StageFlowManager : MonoBehaviour
             new GameObject("GameSystem1").AddComponent<GameSystem1>();
         }
 
+        // Ensure AudioManager exists
         if (AudioManager.Instance == null)
         {
             GameObject audioObj = new GameObject("AudioManager");
@@ -180,6 +188,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    // ステージを終了し、結果シーンに遷移するメソッド
     public void FinishStage(bool isClear, string reason)
     {
         if (_resultTransitionTriggered) return;
@@ -203,6 +212,7 @@ public class StageFlowManager : MonoBehaviour
         ShowResultOverlay(isClear);
     }
 
+    // ステージ結果オーバーレイを作成または取得する内部メソッド
     private void FindOrCreateResultOverlay()
     {
         if (_resultOverlay != null) return;
@@ -248,6 +258,8 @@ public class StageFlowManager : MonoBehaviour
         _resultOverlay.SetActive(false);
     }
 
+    
+    // ステージ結果オーバーレイを表示する内部メソッド
     private void ShowResultOverlay(bool isClear)
     {
         if (_resultOverlay == null) FindOrCreateResultOverlay();
@@ -261,6 +273,7 @@ public class StageFlowManager : MonoBehaviour
         }
     }
 
+    // ステージ結果オーバーレイを非表示にする内部メソッド
     private void HideResultOverlay()
     {
         if (_resultOverlay != null)

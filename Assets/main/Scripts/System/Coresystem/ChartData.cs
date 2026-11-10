@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
-public class ChartData : MonoBehaviour
+[System.Serializable]
+public class ChartData
 {
     //JSON形式の譜面データを格納するためのクラス
     public string title = "Default Title";   //譜面のタイトル

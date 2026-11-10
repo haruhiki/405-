@@ -1,7 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
 using Unity.VisualScripting;
+using System.Runtime.CompilerServices;
+using System.IO;
+using UnityEngine.Networking;
 
 public class AudioManager : MonoBehaviour
 {
@@ -18,6 +22,10 @@ public class AudioManager : MonoBehaviour
 
     [Header("譜面作成・エディタ拡張機能")]
     [SerializeField] private AudioDataSO activeAudioData;  //現在選択されている楽曲データ
+
+    //再生時のタイマー補正用変数
+    private double dspStartTime = 0.0;
+    private double bgmoffsetPauseTime = 0.0;
 
     // ループSE用AudioSource
     private AudioSource loopSESource;
@@ -111,17 +119,18 @@ public class AudioManager : MonoBehaviour
     /// <param name="audioData"></param>
     public void LoadMusicData(AudioDataSO audioData)
     {
+        // audioDataがnullかどうかチェック
         if(audioData == null) { return; }
 
+        // 現在の楽曲データを更新
         activeAudioData = audioData;
         if(BGMSoruce != null && activeAudioData.audioClip != null) 
         {
             BGMSoruce.clip = activeAudioData.audioClip;
             BGMSoruce.time = 0;
             BGMSoruce.pitch = 1.0f;
-            BGMSoruce.loop = false;
-            BGMSoruce.playOnAwake = false;
-
+            BGMSoruce.loop = false;  // ループ設定を無効にする
+            BGMSoruce.playOnAwake = false; // 再生開始時に自動再生しないように設定
 
             BGMSoruce.volume = masterVolume * bgmmasterVolume;
             Debug.Log($"楽曲データセット: {activeAudioData.musicTitle} (BPM: {activeAudioData.bpm})");
@@ -129,16 +138,16 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// エディタ用音楽再生
-    /// </summary>
+    /// <summary> /// 音楽再生 /// </summary>
     public void PlayActiveMusic() 
     {
         if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
-        if(BGMSoruce.time >= BGMSoruce.clip.length) 
-        {
-            BGMSoruce.time = 0;
-        }
+
+        // 再生開始時のDSP時間を記録
+        dspStartTime = AudioSettings.dspTime;
+
+        // 再生開始時のBGMの再生位置を記録
+        bgmoffsetPauseTime = BGMSoruce.time;
 
         BGMSoruce.Play();
     }
@@ -150,20 +159,41 @@ public class AudioManager : MonoBehaviour
     public void SkipTime(float seconds) 
     {
         if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
-        float targetTime = BGMSoruce.time + seconds;
-        BGMSoruce.time = Mathf.Clamp(targetTime, 0f, BGMSoruce.clip.length);
+
+        // 再生位置をスキップ
+        float targetTime = Mathf.Clamp(BGMSoruce.time + seconds, 0f, BGMSoruce.clip.length);
+        BGMSoruce.time = targetTime;
+
+        // 再生位置をスキップした後のBGMの再生位置を記録
+        bgmoffsetPauseTime = targetTime;
+        // 再生開始時のDSP時間を更新
+        dspStartTime = AudioSettings.dspTime;
     }
 
     //再生速度
     public void SetPitch(float pitch) 
     {
         if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
+
+        
         BGMSoruce.pitch = Mathf.Clamp(pitch, 0.25f, 3.0f);
     }
 
+
+
     //エディタ用
     public bool IsBGMPlaying() => BGMSoruce != null && BGMSoruce.isPlaying;
-    public float GetCurrentTime() => BGMSoruce != null ? BGMSoruce.time : 0f;
+    public float GetCurrentTime()
+    {
+        if (BGMSoruce == null || BGMSoruce.isPlaying == null)
+        {
+           return BGMSoruce != null ? BGMSoruce.time : 0f;   
+        }
+
+        // 現在の再生時間を計算
+        double elapsedTime = (AudioSettings.dspTime - dspStartTime) * BGMSoruce.pitch;
+        return (float)(bgmoffsetPauseTime + elapsedTime);
+    }
     public float GetTotalDuration() => (BGMSoruce != null && BGMSoruce.clip != null) ? BGMSoruce.clip.length : 0f;
     public float GetCurrentPitch() => BGMSoruce != null ? BGMSoruce.pitch : 1.0f;
     public AudioDataSO GetActiveMusicData() => activeAudioData;
@@ -360,8 +390,49 @@ public class AudioManager : MonoBehaviour
             loopSESource.volume = masterVolume * semasterVolume;
         }
     }
+    
+    /// <summary> /// AudioClipの非同期読み込み /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="onComp"></param>
+    /// <returns></returns>
+    public IEnumerator LoadAudioClipFromPath(string filePath,System.Action<bool> onComp = null)
+    {
+        if(string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        {
+            Debug.Log("[AudioManager] 音源ファイルが見つかりません。");
+            onComp?.Invoke(false);
+            yield break;
+        }
 
+        //拡張子からAudioTypeを判別
+        AudioType audioType = AudioType.OGGVORBIS;
+        string ext = System.IO.Path.GetExtension(filePath.ToLower());
+        if(ext == ".wav") { audioType = AudioType.WAV;}
+        else if(ext == ".mp3") { audioType = AudioType.MPEG;}
 
+        string fileUri = "file://" + filePath;
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(fileUri,audioType))
+        {
+            yield return www.SendWebRequest();
+            if(www.result == UnityWebRequest.Result.ConnectionError 
+                   || www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("[AudioManager] 音源ロード失敗:[www.error]");
+                onComp?.Invoke(false);
+            }
+            else
+            {
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
+                if(clip != null)
+                {
+                    //BGM用のAudioClipに割り当て
+                    BGMSoruce.clip = clip;
+                    Debug.Log("[AudioManager] 音源ロード成功");
+                    onComp?.Invoke(true);
+                }
+            }
+        }
+    }
 
 }
 
