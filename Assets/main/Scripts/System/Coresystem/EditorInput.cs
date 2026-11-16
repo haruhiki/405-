@@ -1,154 +1,174 @@
+using System.Collections.Generic;
 using UnityEngine;
+
+[System.Serializable]
+public struct NoteModifierMapping
+{
+    public KeyCode modifierKey;
+    public NoteDate.NotesType noteType;
+}
+
 
 public class EditorInput : MonoBehaviour
 {
-   
-    [RequireComponent(typeof(ChartEditorManager))]
-    public class ChartEditorInput : MonoBehaviour
+   [Header("連携先マネージャー")]
+    [SerializeField] private ChartEditorManager editorManager;
+
+    [Header("再生・保存キー設定")]
+    [SerializeField] private KeyCode playPauseKey = KeyCode.Space;
+    [SerializeField] private KeyCode saveKey = KeyCode.F5;
+    [SerializeField] private KeyCode skipForwardKey = KeyCode.RightArrow;
+    [SerializeField] private KeyCode skipBackwardKey = KeyCode.LeftArrow;
+
+    [Header("5レーン入力キー (Lane 0 ? 4)")]
+    [SerializeField] private KeyCode[] laneKeys = new KeyCode[]
     {
-        private ChartEditorManager editorManager;
-        [SerializeField] private ChartEditorGrid gridSystem;
+        KeyCode.D, // Lane 0
+        KeyCode.F, // Lane 1
+        KeyCode.G, // Lane 2
+        KeyCode.H, // Lane 3
+        KeyCode.J  // Lane 4
+    };
 
-        [Header("キー割り当て設定")]
-        [SerializeField] private KeyCode lane0Key = KeyCode.F; // レーン0（左）
-        [SerializeField] private KeyCode lane1Key = KeyCode.J; // レーン1（右）
+    [Header("特殊ノーツの修飾キー設定（Inspectorから拡張可能）")]
+    [SerializeField] private List<NoteModifierMapping> modifierMappings = new List<NoteModifierMapping>()
+    {
+        new NoteModifierMapping { modifierKey = KeyCode.LeftShift, noteType = NoteDate.NotesType.Damage },
+        new NoteModifierMapping { modifierKey = KeyCode.LeftControl, noteType = NoteDate.NotesType.Flick }
+    };
 
-        [Header("入力パラメータ")]
-        [SerializeField] private float longPressThreshold = 0.15f; // 単押し/ロング判定のしきい値(秒)
+    [Header("ノーツ自動判定のしきい値 (秒)")]
+    [Tooltip("この時間以上押し続けたらロングノーツとして登録")]
+    [SerializeField] private float longNoteThreshold = 0.20f;
+    [Tooltip("この時間差以内の複数押しを同時押し(Both)として判定")]
+    [SerializeField] private float bothNoteThreshold = 0.05f;
+    [SerializeField] private float skipSeconds = 5.0f;
 
-        // リアルタイム打ち込み管理（レーンごとの保持データ）
-        private NotesCon[] activeRecordingNotes = new NotesCon[2];
-        private float[] holdStartTimes = new float[2];
+    // 各レーンの押下状態管理
+    private float[] pressStartTimes = new float[5];
+    private bool[] isKeyPressed = new bool[5];
 
-        private void Awake()
+    private void Update()
+    {
+        if (editorManager == null || AudioManager.Instance == null) return;
+
+        // 1. BGMの再生 / 一時停止 (Space)
+        if (Input.GetKeyDown(playPauseKey))
         {
-            // 同一GameObjectからManager参照を自動取得
-            editorManager = GetComponent<ChartEditorManager>();
-
-            // GridSystemが未設定の場合は同じオブジェクトから取得を試みる
-            if (gridSystem == null)
+            if (editorManager.IsAudioReady)
             {
-                gridSystem = GetComponent<ChartEditorGrid>();
+                AudioManager.Instance.TogglePlayPause();
+            }
+            else
+            {
+                Debug.LogWarning("[ChartEditorInput] 楽曲のロードが完了していないため再生できません。");
             }
         }
 
-        private void Update()
+        // 2. 譜面データの保存 (F5)
+        if (Input.GetKeyDown(saveKey))
         {
-            if (AudioManager.Instance == null) return;
-            float currentTime = AudioManager.Instance.GetCurrentTime();
-
-            // 1. ショートカットキー入力の監視
-            HandleShortcutInputs();
-
-            // 2. レーン別のノーツ打ち込み処理（Fキー / Jキー）
-            ProcessKeyRec(0, lane0Key, currentTime);
-            ProcessKeyRec(1, lane1Key, currentTime);
+            editorManager.SaveChartData();
         }
 
-        /// <summary>
-        /// ショートカットキー（保存・グリッド切り替え）の処理
-        /// </summary>
-        private void HandleShortcutInputs()
+        // 3. 早送り / 巻き戻し (左右矢印キー)
+        if (Input.GetKeyDown(skipForwardKey))
         {
-            // Ctrl + S : 譜面データのJSON保存
-            if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.S))
-            {
-                editorManager.SaveChartData();
-            }
+            AudioManager.Instance.SkipTime(skipSeconds);
+        }
+        if (Input.GetKeyDown(skipBackwardKey))
+        {
+            AudioManager.Instance.SkipTime(-skipSeconds);
+        }
 
-            // Gキー : グリッドスナップの ON / OFF 切替
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                if (gridSystem != null)
-                {
-                    gridSystem.isSnapEnabled = !gridSystem.isSnapEnabled;
-                    Debug.Log($"[EditorInput] グリッドスナップ: {(gridSystem.isSnapEnabled ? "ON" : "OFF")}");
-                }
-            }
+        // 4. 5レーン入力（Short / Long / Both / 特殊ノーツ判定）
+        HandleLaneInputs();
+    }
 
-            // Tabキー : 拍分割数の切り替え (4分 -> 8分 -> 16分 -> 32分)
-            if (Input.GetKeyDown(KeyCode.Tab))
+    private void HandleLaneInputs()
+    {
+        if (!editorManager.IsAudioReady) return;
+
+        float currentTime = AudioManager.Instance.GetCurrentTime();
+        int laneCount = Mathf.Min(laneKeys.Length, 5);
+
+        // キーを押した瞬間：開始時刻を記録
+        for (int i = 0; i < laneCount; i++)
+        {
+            if (Input.GetKeyDown(laneKeys[i]))
             {
-                if (gridSystem != null)
-                {
-                    gridSystem.CycleDivision();
-                    Debug.Log($"[EditorInput] 拍分割を変更: {gridSystem.beatDivision}分音符");
-                }
+                pressStartTimes[i] = currentTime;
+                isKeyPressed[i] = true;
             }
         }
 
-        /// <summary>
-        /// ノーツの入力監視・リアルタイム伸長・スナップ確定処理
-        /// </summary>
-        private void ProcessKeyRec(int lane, KeyCode key, float currentTime)
+        // キーを離した瞬間：押下時間・修飾キー・同時押し状況に応じて確定
+        for (int i = 0; i < laneCount; i++)
         {
-            float bpm = editorManager.activeChartData.bpm;
-
-            // ----------------------------------------------------
-            // 1. 押した瞬間：開始時間を記録（＋スナップ）して仮ロングを生成
-            // ----------------------------------------------------
-            if (Input.GetKeyDown(key))
+            if (Input.GetKeyUp(laneKeys[i]) && isKeyPressed[i])
             {
-                // グリッドが有効なら現在時間を最寄りの拍へスナップ
-                float startTime = (gridSystem != null) ? gridSystem.SnapTime(currentTime, bpm) : currentTime;
-                holdStartTimes[lane] = startTime;
+                float startTime = pressStartTimes[i];
+                float holdDuration = currentTime - startTime;
+                isKeyPressed[i] = false;
 
-                // 打ち込み中のリアルタイムプレビュー用オブジェクトを生成
-                activeRecordingNotes[lane] = editorManager.SpawnHandlePreview(lane, startTime);
-            }
-
-            // ----------------------------------------------------
-            // 2. 押している間：入力時間に応じてリアルタイムにお尻を伸ばす
-            // ----------------------------------------------------
-            if (Input.GetKey(key) && activeRecordingNotes[lane] != null)
-            {
-                float currentDuration = currentTime - holdStartTimes[lane];
-                float initialTargetTime = holdStartTimes[lane] + editorManager.PrespawnTime;
-
-                // リアルタイム表示の更新
-                activeRecordingNotes[lane].SetEndTime(initialTargetTime + currentDuration);
-            }
-
-            // ----------------------------------------------------
-            // 3. 離した瞬間：時間判定と最終スナップを行って確定
-            // ----------------------------------------------------
-            if (Input.GetKeyUp(key))
-            {
-                float rawDuration = currentTime - holdStartTimes[lane];
-
-                if (rawDuration < longPressThreshold)
+                // A. 修飾キー（Damage / Flick / 将来追加ノーツ等）が押されているかチェック
+                if (TryGetActiveModifierNoteType(out NoteDate.NotesType specialType))
                 {
-                    // 単押し（Shortノーツ）判定
-                    // 仮生成していたロング用オブジェクトを破棄
-                    if (activeRecordingNotes[lane] != null)
-                    {
-                        Destroy(activeRecordingNotes[lane].gameObject);
-                        activeRecordingNotes[lane] = null;
-                    }
-
-                    // type: 0 (Short), length: 0
-                    editorManager.AddNote(holdStartTimes[lane], lane, 0, 0f);
+                    editorManager.AddNoteAtTime(i, startTime, specialType, holdDuration >= longNoteThreshold ? holdDuration : 0f);
+                    continue;
                 }
+
+                // B. ロングノーツ判定（一定時間以上押し続けた場合）
+                if (holdDuration >= longNoteThreshold)
+                {
+                    editorManager.AddLongNote(i, startTime, currentTime, holdDuration);
+                }
+                // C. 単押し / 同時押し判定
                 else
                 {
-                    // ロングノーツ確定判定
-                    // 離した時間もグリッドにスナップさせて正確な長さを計算
-                    float snappedEndTime = (gridSystem != null) ? gridSystem.SnapTime(currentTime, bpm) : currentTime;
-                    float snappedDuration = Mathf.Max(0.1f, snappedEndTime - holdStartTimes[lane]);
+                    bool isBoth = CheckIsBothNote(i, startTime, laneCount);
+                    NoteDate.NotesType type = isBoth ? NoteDate.NotesType.Both : NoteDate.NotesType.Short;
 
-                    // type: 1 (Long), length: snappedDuration
-                    editorManager.AddNote(holdStartTimes[lane], lane, 1, snappedDuration);
-
-                    // リアルタイムで伸びていたオブジェクトを寿命設定して解放
-                    if (activeRecordingNotes[lane] != null)
-                    {
-                        float destroyDelay = editorManager.PrespawnTime + snappedDuration + 0.5f;
-                        Destroy(activeRecordingNotes[lane].gameObject, destroyDelay);
-                        activeRecordingNotes[lane] = null;
-                    }
+                    editorManager.AddNoteAtTime(i, startTime, type, 0f);
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 現在押下中の修飾キーに対応する NotesType があれば取得する
+    /// </summary>
+    private bool TryGetActiveModifierNoteType(out NoteDate.NotesType matchedType)
+    {
+        for (int i = 0; i < modifierMappings.Count; i++)
+        {
+            if (Input.GetKey(modifierMappings[i].modifierKey))
+            {
+                matchedType = modifierMappings[i].noteType;
+                return true;
+            }
+        }
+        matchedType = NoteDate.NotesType.Short;
+        return false;
+    }
+
+    /// <summary>
+    /// 同時押し（Both）かどうかを判定
+    /// </summary>
+    private bool CheckIsBothNote(int currentLane, float startTime, int laneCount)
+    {
+        // 1. 現在ほかに押されているレーンの開始時刻が近い場合
+        for (int j = 0; j < laneCount; j++)
+        {
+            if (j == currentLane) continue;
+            if (isKeyPressed[j] && Mathf.Abs(pressStartTimes[j] - startTime) <= bothNoteThreshold)
+            {
+                return true;
+            }
+        }
+
+        // 2. 先に離されて登録済みの直前ノーツと開始時刻がほぼ同じ場合、既存ノーツも Both に更新
+        return editorManager.TryMarkSimultaneousNoteAsBoth(startTime, bothNoteThreshold);
     }
 
 }

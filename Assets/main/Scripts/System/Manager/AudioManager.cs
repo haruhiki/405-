@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
-using Unity.VisualScripting;
-using System.Runtime.CompilerServices;
 using System.IO;
 using UnityEngine.Networking;
 
@@ -30,7 +28,6 @@ public class AudioManager : MonoBehaviour
     // ループSE用AudioSource
     private AudioSource loopSESource;
 
-
     #region singleton
     public static AudioManager Instance { get; private set; }
 
@@ -50,7 +47,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        if(activeAudioData != null) 
+        if (activeAudioData != null)
         {
             LoadMusicData(activeAudioData);
         }
@@ -75,30 +72,58 @@ public class AudioManager : MonoBehaviour
     /// <summary> /// BGMの停止 /// </summary>
     public void BGMStop()
     {
+        if (BGMSoruce == null) return;
         BGMSoruce.Stop();
+        BGMSoruce.time = 0f;
+        bgmoffsetPauseTime = 0.0;
     }
 
     /// <summary> /// BGMの一時停止 /// </summary>
     public void BGMPause()
     {
+        if (BGMSoruce == null) return;
         BGMSoruce.Pause();
+        bgmoffsetPauseTime = BGMSoruce.time;
     }
 
-    /// <summary>　/// BGMの再開　/// </summary>
+    /// <summary> /// BGMの再開 /// </summary>
     public void BGMauPause()
     {
+        if (BGMSoruce == null) return;
+        dspStartTime = AudioSettings.dspTime;
+        bgmoffsetPauseTime = BGMSoruce.time;
         BGMSoruce.UnPause();
     }
 
+    /// <summary>
+    /// エディタ用：再生と一時停止のトグル切り替え
+    /// </summary>
+    public void TogglePlayPause()
+    {
+        if (BGMSoruce == null || BGMSoruce.clip == null)
+        {
+            Debug.LogWarning("[AudioManager] BGMがロードされていないため再生できません。");
+            return;
+        }
+
+        if (BGMSoruce.isPlaying)
+        {
+            BGMPause();
+            Debug.Log($"[AudioManager] 一時停止 ({BGMSoruce.time:F2}s)");
+        }
+        else
+        {
+            PlayActiveMusic();
+            Debug.Log($"[AudioManager] 再生開始 ({BGMSoruce.time:F2}s)");
+        }
+    }
 
     /// <summary>
     /// BGMSoundのリスト内にあるBGMを再生
     /// </summary>
-    /// <param name="bgm"></param>
     public void PlayBGM(BGMSound.BGMDETA bgm)
     {
-        BGMSound data = BGMSounds.Find(data => data.bgmData == bgm);
-        //データがnullどうかチェック
+        BGMSound data = BGMSounds.Find(d => d.bgmData == bgm);
         if (data != null)
         {
             BGMSoruce.clip = data.bgmclip;
@@ -107,131 +132,119 @@ public class AudioManager : MonoBehaviour
         }
         else
         {
-            //データの有無をチェック
             Debug.LogError("指定されたBGMデータが見つかりません:" + bgm);
         }
-
     }
 
     /// <summary>
-    /// 特定の楽曲データを読み込む
+    /// 特定の楽曲データを読み込む（インゲーム用SO）
     /// </summary>
-    /// <param name="audioData"></param>
     public void LoadMusicData(AudioDataSO audioData)
     {
-        // audioDataがnullかどうかチェック
-        if(audioData == null) { return; }
+        if (audioData == null) { return; }
 
-        // 現在の楽曲データを更新
         activeAudioData = audioData;
-        if(BGMSoruce != null && activeAudioData.audioClip != null) 
+        if (BGMSoruce != null && activeAudioData.audioClip != null)
         {
             BGMSoruce.clip = activeAudioData.audioClip;
             BGMSoruce.time = 0;
             BGMSoruce.pitch = 1.0f;
-            BGMSoruce.loop = false;  // ループ設定を無効にする
-            BGMSoruce.playOnAwake = false; // 再生開始時に自動再生しないように設定
+            BGMSoruce.loop = false;
+            BGMSoruce.playOnAwake = false;
+            bgmoffsetPauseTime = 0.0;
 
             BGMSoruce.volume = masterVolume * bgmmasterVolume;
             Debug.Log($"楽曲データセット: {activeAudioData.musicTitle} (BPM: {activeAudioData.bpm})");
-
         }
     }
 
     /// <summary> /// 音楽再生 /// </summary>
-    public void PlayActiveMusic() 
+    public void PlayActiveMusic()
     {
-        if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
+        if (BGMSoruce == null || BGMSoruce.clip == null) { return; }
 
-        // 再生開始時のDSP時間を記録
         dspStartTime = AudioSettings.dspTime;
-
-        // 再生開始時のBGMの再生位置を記録
         bgmoffsetPauseTime = BGMSoruce.time;
-
+        BGMSoruce.volume = masterVolume * bgmmasterVolume;
         BGMSoruce.Play();
     }
 
     /// <summary>
     /// エディタ用再生スキップ
     /// </summary>
-    /// <param name="seconds"></param>
-    public void SkipTime(float seconds) 
+    public void SkipTime(float seconds)
     {
-        if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
+        if (BGMSoruce == null || BGMSoruce.clip == null) { return; }
 
-        // 再生位置をスキップ
         float targetTime = Mathf.Clamp(BGMSoruce.time + seconds, 0f, BGMSoruce.clip.length);
         BGMSoruce.time = targetTime;
 
-        // 再生位置をスキップした後のBGMの再生位置を記録
         bgmoffsetPauseTime = targetTime;
-        // 再生開始時のDSP時間を更新
         dspStartTime = AudioSettings.dspTime;
     }
 
     //再生速度
-    public void SetPitch(float pitch) 
+    public void SetPitch(float pitch)
     {
-        if(BGMSoruce == null || BGMSoruce.clip == null) { return; }
+        if (BGMSoruce == null || BGMSoruce.clip == null) { return; }
 
-        
+        // 速度変更時も現在時刻がズレないよう基準点を再記録
+        if (BGMSoruce.isPlaying)
+        {
+            bgmoffsetPauseTime = GetCurrentTime();
+            dspStartTime = AudioSettings.dspTime;
+        }
         BGMSoruce.pitch = Mathf.Clamp(pitch, 0.25f, 3.0f);
     }
 
-
-
-    //エディタ用
+    //エディタ用ステータス取得
     public bool IsBGMPlaying() => BGMSoruce != null && BGMSoruce.isPlaying;
+
     public float GetCurrentTime()
     {
-        if (BGMSoruce == null || BGMSoruce.isPlaying == null)
+        if (BGMSoruce == null || BGMSoruce.clip == null) return 0f;
+
+        // 停止中・一時停止中はDSP計算を行わず現在のAudioSource.timeを返す
+        if (!BGMSoruce.isPlaying)
         {
-           return BGMSoruce != null ? BGMSoruce.time : 0f;   
+            return BGMSoruce.time;
         }
 
-        // 現在の再生時間を計算
         double elapsedTime = (AudioSettings.dspTime - dspStartTime) * BGMSoruce.pitch;
         return (float)(bgmoffsetPauseTime + elapsedTime);
     }
+
     public float GetTotalDuration() => (BGMSoruce != null && BGMSoruce.clip != null) ? BGMSoruce.clip.length : 0f;
     public float GetCurrentPitch() => BGMSoruce != null ? BGMSoruce.pitch : 1.0f;
     public AudioDataSO GetActiveMusicData() => activeAudioData;
 
     /// <summary> /// SEを再生 /// </summary>
-    /// <param name="categoryName"></param>
-    /// <param name="se"></param>
     public void PlaySE(string categoryName, SESound.SEDATA se)
     {
-        SECategory category = SECategorys.Find(category => category.categoryName == categoryName);
-        //categoryがnullかどうかチェック
+        SECategory category = SECategorys.Find(c => c.categoryName == categoryName);
         if (category != null)
         {
-            SESound date = category.sounds.Find(sound => sound.seData == se);
-            if (date != null)
+            SESound data = category.sounds.Find(sound => sound.seData == se);
+            if (data != null)
             {
-                SESource.volume = date.seVolume * masterVolume * semasterVolume;
-                SESource.PlayOneShot(date.seclip);
+                SESource.volume = data.seVolume * masterVolume * semasterVolume;
+                SESource.PlayOneShot(data.seclip);
             }
             else
             {
-                //SEの有無をチェック
                 Debug.LogError("指定されたSEが見つかりません:" + se);
             }
         }
         else
         {
-            //カテゴリーの有無をチェック
             Debug.LogError("指定されたカテゴリが見つかりません。" + categoryName);
         }
     }
 
     /// <summary> /// SEカテゴリー内のSEを再生 /// </summary>
-    /// <param name="categoryName"></param>
-    /// <param name="index"></param>
     public void PlayspecificSE(string categoryName, int index)
     {
-        SECategory category = SECategorys.Find(category => category.categoryName == categoryName);
+        SECategory category = SECategorys.Find(c => c.categoryName == categoryName);
         if (category != null)
         {
             if (index >= 0 && index < category.sounds.Count)
@@ -252,13 +265,11 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary> /// ループSEを再生（ロングノーツ用） /// </summary>
-    /// <param name="categoryName">カテゴリー名</param>
-    /// <param name="se">SE種類</param>
     public void PlayLoopSE(string categoryName, SESound.SEDATA se)
     {
         if (loopSESource == null) InitializeLoopSESource();
 
-        SECategory category = SECategorys.Find(category => category.categoryName == categoryName);
+        SECategory category = SECategorys.Find(c => c.categoryName == categoryName);
         if (category != null)
         {
             SESound data = category.sounds.Find(sound => sound.seData == se);
@@ -268,7 +279,6 @@ public class AudioManager : MonoBehaviour
                 loopSESource.volume = data.seVolume * masterVolume * semasterVolume;
                 loopSESource.loop = true;
                 loopSESource.Play();
-                Debug.Log($"【LoopSE開始】{categoryName} - {se}");
             }
             else
             {
@@ -288,13 +298,9 @@ public class AudioManager : MonoBehaviour
         {
             loopSESource.Stop();
             loopSESource.clip = null;
-            Debug.Log("【LoopSE停止】");
         }
     }
 
-    /// <summary>
-    /// Pause all audio sources used by AudioManager
-    /// </summary>
     public void PauseAll()
     {
         try
@@ -309,9 +315,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Resume all audio sources previously paused
-    /// </summary>
     public void ResumeAll()
     {
         try
@@ -326,117 +329,100 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary> /// マスター音量を設定（BGMとSE両方に適用）/// </summary>
-    /// <param name="volume">0.0 - 1.0</param>
     public void SetMasterVolume(float volume)
     {
         masterVolume = Mathf.Clamp01(volume);
         UpdateAllVolumes();
-        Debug.Log($"【マスター音量設定】{masterVolume:F2}");
     }
 
-    /// <summary> /// BGM音量を設定 /// </summary>
-    /// <param name="volume">0.0 - 1.0</param>
     public void SetBGMVolume(float volume)
     {
         bgmmasterVolume = Mathf.Clamp01(volume);
         UpdateBGMVolume();
-        Debug.Log($"【BGM音量設定】{bgmmasterVolume:F2}");
     }
 
-    /// <summary> /// SE音量を設定 /// </summary>
-    /// <param name="volume">0.0 - 1.0</param>
     public void SetSEVolume(float volume)
     {
         semasterVolume = Mathf.Clamp01(volume);
         UpdateSEVolume();
-        Debug.Log($"【SE音量設定】{semasterVolume:F2}");
     }
 
-    /// <summary> /// 現在のマスター音量を取得 /// </summary>
     public float GetMasterVolume() => masterVolume;
-
-    /// <summary> /// 現在のBGM音量を取得 /// </summary>
     public float GetBGMVolume() => bgmmasterVolume;
-
-    /// <summary> /// 現在のSE音量を取得  /// </summary>
     public float GetSEVolume() => semasterVolume;
 
-    /// <summary> /// すべての音声の音量を更新 /// </summary>
     private void UpdateAllVolumes()
     {
         UpdateBGMVolume();
         UpdateSEVolume();
     }
 
-    /// <summary> /// BGMの音量を更新（現在再生中なら即座に反映）/// </summary>
     private void UpdateBGMVolume()
     {
-        if (BGMSoruce != null)
-        {
-            BGMSoruce.volume = masterVolume * bgmmasterVolume;
-        }
+        if (BGMSoruce != null) BGMSoruce.volume = masterVolume * bgmmasterVolume;
     }
 
-    /// <summary> /// SEの音量を更新（現在再生中なら即座に反映） /// </summary>
     private void UpdateSEVolume()
     {
-        if (SESource != null)
-        {
-            SESource.volume = masterVolume * semasterVolume;
-        }
-        if (loopSESource != null)
-        {
-            loopSESource.volume = masterVolume * semasterVolume;
-        }
+        if (SESource != null) SESource.volume = masterVolume * semasterVolume;
+        if (loopSESource != null) loopSESource.volume = masterVolume * semasterVolume;
     }
-    
-    /// <summary> /// AudioClipの非同期読み込み /// </summary>
-    /// <param name="filePath"></param>
-    /// <param name="onComp"></param>
-    /// <returns></returns>
-    public IEnumerator LoadAudioClipFromPath(string filePath,System.Action<bool> onComp = null)
+
+    /// <summary> /// AudioClipの非同期読み込み（エディタ用） /// </summary>
+    public IEnumerator LoadAudioClipFromPath(string filePath, System.Action<bool> onComp = null)
     {
-        if(string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
         {
-            Debug.Log("[AudioManager] 音源ファイルが見つかりません。");
+            Debug.LogWarning($"[AudioManager] 音源ファイルが見つかりません: {filePath}");
             onComp?.Invoke(false);
             yield break;
         }
 
-        //拡張子からAudioTypeを判別
+        // 拡張子からAudioTypeを判別
         AudioType audioType = AudioType.OGGVORBIS;
-        string ext = System.IO.Path.GetExtension(filePath.ToLower());
-        if(ext == ".wav") { audioType = AudioType.WAV;}
-        else if(ext == ".mp3") { audioType = AudioType.MPEG;}
+        string ext = Path.GetExtension(filePath).ToLower();
+        if (ext == ".wav") { audioType = AudioType.WAV; }
+        else if (ext == ".mp3") { audioType = AudioType.MPEG; }
 
-        string fileUri = "file://" + filePath;
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(fileUri,audioType))
+        // Windowsのパス区切り文字を正規化してURI生成
+        string fileUri = "file:///" + filePath.Replace("\\", "/");
+
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(fileUri, audioType))
         {
             yield return www.SendWebRequest();
-            if(www.result == UnityWebRequest.Result.ConnectionError 
-                   || www.result == UnityWebRequest.Result.ProtocolError)
+            if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("[AudioManager] 音源ロード失敗:[www.error]");
+                Debug.LogError($"[AudioManager] 音源ロード失敗: {www.error} (URI: {fileUri})");
                 onComp?.Invoke(false);
             }
             else
             {
                 AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
-                if(clip != null)
+                if (clip != null && BGMSoruce != null)
                 {
-                    //BGM用のAudioClipに割り当て
+                    BGMSoruce.Stop();
                     BGMSoruce.clip = clip;
-                    Debug.Log("[AudioManager] 音源ロード成功");
+                    BGMSoruce.time = 0f;
+                    BGMSoruce.pitch = 1.0f;
+                    BGMSoruce.loop = false;
+                    BGMSoruce.volume = masterVolume * bgmmasterVolume;
+
+                    bgmoffsetPauseTime = 0.0;
+                    dspStartTime = AudioSettings.dspTime;
+
+                    Debug.Log($"[AudioManager] 音源ロード成功: {Path.GetFileName(filePath)} ({clip.length:F2}s)");
                     onComp?.Invoke(true);
+                }
+                else
+                {
+                    Debug.LogError("[AudioManager] AudioClipの取得またはBGMSoruceの参照に失敗しました。");
+                    onComp?.Invoke(false);
                 }
             }
         }
     }
-
 }
 
-/// <summary>/// BGMデータの管理　/// </summary>
 [Serializable]
 public class BGMSound
 {
@@ -447,14 +433,11 @@ public class BGMSound
         Result,
         None,
     }
-
     public BGMDETA bgmData;
     public AudioClip bgmclip;
     [Range(0f, 1f)] public float bgmVolume = 1;
-
 }
 
-/// <summary> /// SEの音源データ管理 /// </summary>
 [Serializable]
 public class SESound
 {
@@ -468,16 +451,11 @@ public class SESound
     public SEDATA seData;
     public AudioClip seclip;
     [Range(0f, 1f)] public float seVolume = 1;
-
-
 }
 
-
-/// <summary>　/// SEをカテゴリーごとに管理　/// </summary>
 [Serializable]
 public class SECategory
 {
-    //カテゴリ名で管理
     public string categoryName;
     public List<SESound> sounds = new List<SESound>();
 }

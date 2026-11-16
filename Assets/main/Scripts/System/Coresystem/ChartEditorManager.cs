@@ -1,378 +1,388 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+[System.Serializable]
+public struct NotePrefabConfig
+{
+    public NoteDate.NotesType noteType;
+    public GameObject prefab;
+}
 
 public class ChartEditorManager : MonoBehaviour
 {
-    [Header("JSON管理譜面データ")]
-    public ChartData activeChartData = new ChartData(); // 譜面データの管理用インスタンス
-    [SerializeField] private string currentSaveFileName = "NewChartData.json"; // 現在の保存ファイル名   
-
-    [Header("プレビューノーツ生成設定")]
-    [SerializeField] private GameObject shortNotePrefab;
-    [SerializeField] private GameObject longNotePrefab;
-    [SerializeField] private GameObject rushNotePrefab;
-    [SerializeField] private GameObject bothNotePrefab;
-
-    [Header("レーン・位置設定")]
-    [SerializeField] private Transform[] spawnPoints;   // ノーツ生成位置の配列
-    [SerializeField] private Transform[] targetCircles; // 判定円の位置の配列
-
-    // TODO: 同時押しは現状実装しているが、将来的には削除するかも？
-    [SerializeField] private Transform bothSpawnPoint;   // 同時押しノーツの生成位置
-    [SerializeField] private Transform bothTargetCircle; // 同時押しノーツの判定円位置
-
-    [Header("生成パラメータ")]
-    [SerializeField] private float preSpawnTime = 1.0f; // ノーツ生成の事前時間
-
-    // TODO: 今回はキーボード入力でのテスト実装だが、将来的なことを考えて残しておく
     [Header("シーン上のオブジェクト参照")]
     [SerializeField] private NotsSpawn notsSpawn;
+    [SerializeField] private ChartEditorGrid editorGrid;
+    [SerializeField] private Text currentSongText;
+    [SerializeField] private Text timeDisplayText;
 
-    // TODO: ラッシュノーツの自動連打は、将来的には削除するかも？
-    [Header("ラッシュ自動連打設定")]
-    [SerializeField] private float rushInterval = 0.1f;
+    [Header("プレビューレーン設定 (5レーン対応: Element 0?4)")]
+    [SerializeField] private Transform[] laneSpawnPoints = new Transform[5];
+    [SerializeField] private Transform[] laneJudgePoints = new Transform[5];
+    [SerializeField] private float defaultPreSpawnTime = 2.0f;
 
-    [Header("楽曲フォルダ管理")]
-    public List<SongDirectory> availableSongs = new List<SongDirectory>();
-    private int currentMusicIndex = 0;
+    [Header("ノーツ種別ごとのPrefab設定（ロングはLong_Startに1つだけ設定）")]
+    [Tooltip("未設定のNotesTypeが来たときの予備Prefab")]
+    [SerializeField] private GameObject defaultPreviewPrefab;
+    [SerializeField] private List<NotePrefabConfig> notePrefabConfigs = new List<NotePrefabConfig>()
+    {
+        new NotePrefabConfig { noteType = NoteDate.NotesType.Short, prefab = null },
+        new NotePrefabConfig { noteType = NoteDate.NotesType.Long_Start, prefab = null },
+        new NotePrefabConfig { noteType = NoteDate.NotesType.Both, prefab = null },
+        new NotePrefabConfig { noteType = NoteDate.NotesType.Flick, prefab = null },
+        new NotePrefabConfig { noteType = NoteDate.NotesType.Damage, prefab = null }
+    };
+
+    private List<SongDirectory> availableSongs = new List<SongDirectory>();
+    private int selectedSongIndex = 0;
     private string currentMusicPath = "";
 
-    private bool isPreviewPlaying = false;
-    private int playbackIndex = 0;
-    private float lastCheckedTime = 0f;
+    public ChartData activeChartData = new ChartData();
+    public float PrespawnTime => notsSpawn != null ? notsSpawn.preSpawnTime : defaultPreSpawnTime;
+    public bool IsAudioReady { get; private set; } = false;
+
+    private Dictionary<GameObject, List<GameObject>> previewPools = new Dictionary<GameObject, List<GameObject>>();
+
+    private void Awake()
+    {
+        if (editorGrid == null)
+        {
+            editorGrid = GetComponent<ChartEditorGrid>();
+        }
+    }
 
     private void Start()
     {
-        // 起動時に利用可能な楽曲データを取得・ロード
-        RefleshSongListAndLoad(0);
+        RefreshSongListAndLoad(0);
     }
 
     private void Update()
     {
-        if (AudioManager.Instance == null) { return; }
-        float currentTime = AudioManager.Instance.GetCurrentTime();
-
-        if (isPreviewPlaying && AudioManager.Instance.IsBGMPlaying())
-        {
-            UpdateChartPlayback(currentTime);
-        }
-        lastCheckedTime = currentTime;
+        UpdateTimeDisplay();
+        UpdatePreviewNotes();
     }
 
-    /// <summary>
-    /// 利用可能な曲リストを更新し、指定インデックスの曲をロードする
-    /// </summary>
-    /// <param name="index">ロードする曲のインデックス</param>
-    public void RefleshSongListAndLoad(int index)
+    public void RefreshSongListAndLoad(int index = 0)
     {
+        IsAudioReady = false;
+        ClearAllPreviewObjects();
+        if (editorGrid != null) editorGrid.ResetGridState();
+
         availableSongs = SongDirectoryManager.GetSongDirectories();
-        if (availableSongs == null || availableSongs.Count <= 0)
+
+        if (availableSongs.Count == 0)
         {
-            Debug.LogWarning("[ChartEditor] 音源データがSongフォルダに存在しません。");
+            currentMusicPath = "";
+            if (currentSongText != null) currentSongText.text = "N/A";
+            Debug.LogWarning("[ChartEditor] Assets/Songs/ 内に有効な曲フォルダが見つかりません。");
             return;
         }
 
-        currentMusicIndex = Mathf.Clamp(index, 0, availableSongs.Count - 1);
-        SongDirectory targetSong = availableSongs[currentMusicIndex];
-        currentMusicPath = targetSong.folderPath;
+        selectedSongIndex = Mathf.Clamp(index, 0, availableSongs.Count - 1);
+        SongDirectory currentSong = availableSongs[selectedSongIndex];
+        currentMusicPath = currentSong.folderPath;
 
-        // コルーチンを起動して音源とJSONを実際にロード
-        StopAllCoroutines();
-        StartCoroutine(LoadSongRoutine(targetSong));
-    }
-
-    private IEnumerator LoadSongRoutine(SongDirectory songDir)
-    {
-        // 1. JSON譜面データのロード
-        if (File.Exists(songDir.jsonPath))
+        if (currentSongText != null)
         {
-            activeChartData = ChartInputOutPut_Json.LoadChartData(songDir.jsonPath);
-            Debug.Log($"[ChartEditor] JSON譜面ロード成功: {songDir.jsonPath}");
+            currentSongText.text = currentSong.folderName;
         }
-        else
+
+        StartCoroutine(AudioManager.Instance.LoadAudioClipFromPath(currentSong.audioPath, (success) =>
         {
-            activeChartData = new ChartData
+            if (success)
             {
-                title = songDir.folderName
-            };
-            Debug.Log($"[ChartEditor] 新規譜面データ作成: {songDir.folderName}");
-        }
-
-        // 2. 音源ファイル（AudioClip）のロード
-        if (!string.IsNullOrEmpty(songDir.audioPath) && AudioManager.Instance != null)
-        {
-            yield return AudioManager.Instance.LoadAudioClipFromPath(songDir.audioPath);
-        }
-
-        // 3. 再生インデックスのリセット
-        if (AudioManager.Instance != null)
-        {
-            ResetPlaybackIndexToTime(AudioManager.Instance.GetCurrentTime());
-        }
-
-        Debug.Log($"[ChartEditor] 楽曲読み込み完了: {songDir.folderName}");
+                IsAudioReady = true;
+                LoadChartData(currentSong.jsonPath);
+            }
+            else
+            {
+                IsAudioReady = false;
+                Debug.LogError($"[ChartEditor] 音源のロードに失敗しました: {currentSong.folderName}");
+            }
+        }));
     }
 
-    /// <summary>
-    /// ノーツを譜面データに追加し、プレビューを生成
-    /// </summary>
-    public void AddNote(float time, int lane, int type, float length = 0f)
+    public void SelectNextSong()
     {
-        NoteDate.Notes noteToAdd = new NoteDate.Notes
+        if (availableSongs.Count == 0) return;
+        int nextIndex = (selectedSongIndex + 1) % availableSongs.Count;
+        RefreshSongListAndLoad(nextIndex);
+    }
+
+    public void SelectPrevSong()
+    {
+        if (availableSongs.Count == 0) return;
+        int prevIndex = (selectedSongIndex - 1 + availableSongs.Count) % availableSongs.Count;
+        RefreshSongListAndLoad(prevIndex);
+    }
+
+    public void AddNoteAtTime(int laneIndex, float time, NoteDate.NotesType type, float length = 0f)
+    {
+        if (!IsAudioReady || AudioManager.Instance == null) return;
+        InsertNoteInternal(laneIndex, time, type, length);
+    }
+
+    public void AddLongNote(int laneIndex, float startTime, float endTime, float length)
+    {
+        if (!IsAudioReady || AudioManager.Instance == null) return;
+
+        float snappedStart = ApplySnapIfEnabled(startTime);
+        float snappedEnd = ApplySnapIfEnabled(endTime);
+        float finalLength = Mathf.Max(0.05f, snappedEnd - snappedStart);
+
+        InsertNoteInternal(laneIndex, snappedStart, NoteDate.NotesType.Long_Start, finalLength, false);
+        InsertNoteInternal(laneIndex, snappedEnd, NoteDate.NotesType.Long_End, 0f, false);
+
+        Debug.Log($"[ChartEditor] ロングノーツ確定 - Lane: {laneIndex}, Start: {snappedStart:F3}s, End: {snappedEnd:F3}s, Length: {finalLength:F3}s");
+    }
+
+    public bool TryMarkSimultaneousNoteAsBoth(float targetTime, float threshold)
+    {
+        float checkTime = ApplySnapIfEnabled(targetTime);
+        bool found = false;
+        for (int i = 0; i < activeChartData.notes.Count; i++)
         {
-            id = activeChartData.notes.Count + 1,
-            lane = lane,
-            targetTime = time,
-            noteType = (NoteDate.NotesType)type,
+            NoteDate.Notes note = activeChartData.notes[i];
+            if (Mathf.Abs(note.targetTime - checkTime) <= threshold &&
+                (note.noteType == NoteDate.NotesType.Short || note.noteType == NoteDate.NotesType.Both))
+            {
+                note.noteType = NoteDate.NotesType.Both;
+                activeChartData.notes[i] = note;
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    private void InsertNoteInternal(int laneIndex, float time, NoteDate.NotesType type, float length, bool applySnap = true)
+    {
+        float finalTime = applySnap ? ApplySnapIfEnabled(time) : time;
+
+        Vector3 targetPos = (laneJudgePoints != null && laneIndex >= 0 && laneIndex < laneJudgePoints.Length && laneJudgePoints[laneIndex] != null)
+            ? laneJudgePoints[laneIndex].position
+            : Vector3.zero;
+
+        NoteDate.Notes newNote = new NoteDate.Notes
+        {
+            id = activeChartData.notes.Count,
+            targetTime = finalTime,
+            lane = laneIndex,
+            targetPosition = targetPos,
+            noteType = type,
             Length = length
         };
 
-        activeChartData.notes.Add(noteToAdd);
-        activeChartData.SortNotesByTargetTime();
+        activeChartData.notes.Add(newNote);
+        SortAndReindexNotes();
 
-        SpawnSinglePreview(noteToAdd, time);
+        Debug.Log($"[ChartEditor] ノーツ登録 - Lane: {laneIndex}, Type: {type}, Time: {finalTime:F3}s, Length: {length:F2}s (総数: {activeChartData.notes.Count})");
     }
 
-    /// <summary>
-    /// プレビュー自動再生
-    /// </summary>
-    private void UpdateChartPlayback(float currentTime)
+    private float ApplySnapIfEnabled(float rawTime)
     {
-        var notes = activeChartData.notes;
-        if (notes.Count == 0 || playbackIndex >= notes.Count) { return; }
-
-        if (currentTime < lastCheckedTime)
+        if (editorGrid != null && editorGrid.isSnapEnabled && activeChartData != null && activeChartData.bpm > 0)
         {
-            ResetPlaybackIndexToTime(currentTime);
+            return editorGrid.SnapTime(rawTime, activeChartData.bpm);
         }
+        return rawTime;
+    }
 
-        while (playbackIndex < notes.Count &&
-               currentTime >= notes[playbackIndex].targetTime - preSpawnTime)
+    private void SortAndReindexNotes()
+    {
+        activeChartData.notes.Sort((a, b) => a.targetTime.CompareTo(b.targetTime));
+        for (int i = 0; i < activeChartData.notes.Count; i++)
         {
-            var note = notes[playbackIndex];
-            SpawnSinglePreview(note, currentTime);
-            playbackIndex++;
+            NoteDate.Notes temp = activeChartData.notes[i];
+            temp.id = i;
+            activeChartData.notes[i] = temp;
         }
     }
 
-    public float PrespawnTime => preSpawnTime;
-
-    /// <summary>
-    /// 打ち込み開始時にリアルタイムロングノーツオブジェクトを生成
-    /// </summary>
-    public NotesCon SpawnHandlePreview(int lane, float currentTime)
+    public void SaveChartData()
     {
-        if (longNotePrefab == null) return null;
-
-        Vector3 spawnPos = GetSpawnPositionForLane(lane, NoteDate.NotesType.Long_Start);
-        Vector3 targetPos = GetTargetPosition(lane, NoteDate.NotesType.Long_Start);
-
-        GameObject obj = Instantiate(longNotePrefab, spawnPos, Quaternion.identity);
-        NotesCon noteCon = obj.GetComponent<NotesCon>();
-
-        if (noteCon != null)
+        if (string.IsNullOrEmpty(currentMusicPath))
         {
-            NoteDate.Notes tempNote = new NoteDate.Notes
-            {
-                lane = lane,
-                targetTime = currentTime + preSpawnTime,
-                noteType = NoteDate.NotesType.Long_Start
-            };
-
-            noteCon.Init(tempNote, preSpawnTime, targetPos);
-            noteCon.SetEndTime(tempNote.targetTime);
-        }
-        return noteCon;
-    }
-
-    /// <summary>
-    /// 単一のプレビューノーツを生成するメソッド
-    /// </summary>
-    private void SpawnSinglePreview(NoteDate.Notes note, float currentTime)
-    {
-        GameObject prefab = GetPrefabForNoteType(note.noteType);
-        if (prefab == null) { return; }
-
-        Vector3 spawnPos = GetSpawnPositionForLane(note.lane, note.noteType);
-        Vector3 targetPos = GetTargetPosition(note.lane, note.noteType);
-
-        GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
-
-        NotesCon noteCon = obj.GetComponent<NotesCon>();
-        float currentPrespawn = notsSpawn != null ? notsSpawn.preSpawnTime : preSpawnTime;
-
-        if (noteCon != null)
-        {
-            NoteDate.Notes tempNote = new NoteDate.Notes
-            {
-                lane = note.lane,
-                targetTime = note.targetTime,
-                noteType = note.noteType
-            };
-            noteCon.Init(tempNote, currentPrespawn, targetPos);
-
-            if (note.noteType == NoteDate.NotesType.Long_Start)
-            {
-                noteCon.SetEndTime(tempNote.targetTime + note.Length);
-            }
-        }
-        Destroy(obj, currentPrespawn + note.Length + 0.5f);
-    }
-
-    /// <summary>
-    /// レーン・ノーツ種別に応じた生成位置を取得
-    /// </summary>
-    private Vector3 GetSpawnPositionForLane(int lane, NoteDate.NotesType noteType)
-    {
-        if (noteType == NoteDate.NotesType.Both || noteType == NoteDate.NotesType.Rush)
-        {
-            if (bothSpawnPoint != null) { return bothSpawnPoint.position; }
-            if (spawnPoints != null && spawnPoints.Length > 1)
-            {
-                return (spawnPoints[0].position + spawnPoints[1].position) * 0.5f;
-            }
+            Debug.LogWarning("[ChartEditor] 保存先の曲フォルダが選択されていません。");
+            return;
         }
 
-        if (spawnPoints != null && lane >= 0 && lane < spawnPoints.Length)
-        {
-            return spawnPoints[lane].position;
-        }
-
-        return Vector3.zero;
-    }
-
-    /// <summary>
-    /// レーン・ノーツ種別に応じたターゲット位置を取得
-    /// </summary>
-    private Vector3 GetTargetPosition(int lane, NoteDate.NotesType noteType)
-    {
-        if (noteType == NoteDate.NotesType.Both || noteType == NoteDate.NotesType.Rush)
-        {
-            if (bothTargetCircle != null) { return bothTargetCircle.position; }
-            if (targetCircles != null && targetCircles.Length > 1)
-            {
-                return (targetCircles[0].position + targetCircles[1].position) * 0.5f;
-            }
-        }
-
-        if (targetCircles != null && lane >= 0 && lane < targetCircles.Length)
-        {
-            return targetCircles[lane].position;
-        }
-
-        return Vector3.zero;
-    }
-
-    /// <summary>
-    /// 譜面データをJSONファイルに保存
-    /// </summary>
-    public void SaveChartData(string fileName = "")
-    {
-        if (string.IsNullOrEmpty(fileName)) { fileName = currentSaveFileName; }
-        string savePath = GetSaveFilePath(fileName);
+        string savePath = Path.Combine(currentMusicPath, "chart.json");
         ChartInputOutPut_Json.SaveChartData(savePath, activeChartData);
-        Debug.Log($"[ChartEditor] 譜面を保存しました: {savePath}");
+
+        if (File.Exists(savePath))
+        {
+            Debug.Log($"[ChartEditor] JSON保存完了: {savePath} (ノーツ数: {activeChartData.notes.Count})");
+        }
+        else
+        {
+            Debug.LogError($"[ChartEditor] JSONの書き出しに失敗しました: {savePath}");
+        }
+    }
+
+    private void LoadChartData(string jsonPath)
+    {
+        if (File.Exists(jsonPath))
+        {
+            activeChartData = ChartInputOutPut_Json.LoadChartData(jsonPath);
+            if (activeChartData == null) activeChartData = new ChartData();
+            if (activeChartData.notes == null) activeChartData.notes = new List<NoteDate.Notes>();
+            if (activeChartData.bpm <= 0) activeChartData.bpm = 120f;
+
+            Debug.Log($"[ChartEditor] 既存JSONロード完了: {activeChartData.notes.Count} ノーツ (BPM: {activeChartData.bpm})");
+        }
+        else
+        {
+            activeChartData = new ChartData();
+            if (activeChartData.bpm <= 0) activeChartData.bpm = 120f;
+            Debug.Log($"[ChartEditor] 新規譜面として初期化しました (デフォルトBPM: {activeChartData.bpm})。");
+        }
+    }
+
+    private void UpdateTimeDisplay()
+    {
+        if (timeDisplayText == null || AudioManager.Instance == null) return;
+
+        float current = AudioManager.Instance.GetCurrentTime();
+        float total = AudioManager.Instance.GetTotalDuration();
+        timeDisplayText.text = $"{current:F2}s / {total:F2}s";
     }
 
     /// <summary>
-    /// 譜面データをJSONファイルからロード
+    /// NotesTypeごとに設定されたPrefabを使って現在表示範囲のノーツを描画
+    /// ロングノーツは Long_Start の1つのPrefabで始点?終点（targetTime + Length）を表現
     /// </summary>
-    public void LoadChartData(string fileName = "")
+    private void UpdatePreviewNotes()
     {
-        if (string.IsNullOrEmpty(fileName)) { fileName = currentSaveFileName; }
-        string loadPath = GetSaveFilePath(fileName);
-        activeChartData = ChartInputOutPut_Json.LoadChartData(loadPath);
-        if (AudioManager.Instance != null)
-        {
-            ResetPlaybackIndexToTime(AudioManager.Instance.GetCurrentTime());
-        }
-        Debug.Log($"[ChartEditor] 譜面をロードしました: {loadPath}");
-    }
+        if (!IsAudioReady || laneSpawnPoints == null || laneJudgePoints == null) return;
 
-    private string GetSaveFilePath(string fileName)
-    {
-        if(!string.IsNullOrEmpty(currentMusicPath) && Directory.Exists(currentMusicPath))
+        Dictionary<GameObject, int> usedCountPerPrefab = new Dictionary<GameObject, int>();
+        foreach (var kvp in previewPools)
         {
-            return Path.Combine(currentMusicPath,"chart.json");
+            usedCountPerPrefab[kvp.Key] = 0;
+            for (int i = 0; i < kvp.Value.Count; i++)
+            {
+                if (kvp.Value[i] != null) kvp.Value[i].SetActive(false);
+            }
         }
 
-        string folder = Path.Combine(Application.dataPath, "Songs");
-        if (!Directory.Exists(folder))
-        {
-            Directory.CreateDirectory(folder);
-        }
-        return Path.Combine(folder, "chart.json");
-    }
-
-    /// <summary>
-    /// 再生位置を指定時間にリセット
-    /// </summary>
-    private void ResetPlaybackIndexToTime(float time)
-    {
-        playbackIndex = 0;
-        var notes = activeChartData.notes;
-        while (playbackIndex < notes.Count && notes[playbackIndex].targetTime - preSpawnTime < time)
-        {
-            playbackIndex++;
-        }
-    }
-
-    /// <summary>
-    /// ノーツの種類に応じたプレハブを取得
-    /// </summary>
-    private GameObject GetPrefabForNoteType(NoteDate.NotesType noteType)
-    {
-        switch (noteType)
-        {
-            case NoteDate.NotesType.Short:
-                return shortNotePrefab;
-            case NoteDate.NotesType.Long_Start:
-                return longNotePrefab;
-            case NoteDate.NotesType.Rush:
-                return rushNotePrefab;
-            case NoteDate.NotesType.Both:
-                return bothNotePrefab;
-            default:
-                return null;
-        }
-    }
-
-    /// <summary>
-    /// エディタ用画面表示 UI
-    /// </summary>
-    private void OnGUI()
-    {
-        if (AudioManager.Instance == null) { return; }
-        AudioDataSO activeData = AudioManager.Instance.GetActiveMusicData();
-
-        GUI.Box(new Rect(10, 10, 380, 190), "? 譜面作成エディタ");
         float currentTime = AudioManager.Instance.GetCurrentTime();
+        float preSpawn = PrespawnTime;
 
-        string currentSongName = availableSongs.Count > currentMusicIndex ? availableSongs[currentMusicIndex].folderName : "N/A";
-        GUI.Label(new Rect(20, 35, 360, 20), $"選択中の曲: {currentSongName}");
-        GUI.Label(new Rect(20, 60, 360, 20), $"再生時間: {currentTime:F3}s");
-        GUI.Label(new Rect(20, 85, 360, 20), $"登録ノーツ数: {activeChartData.notes.Count}");
+        for (int i = 0; i < activeChartData.notes.Count; i++)
+        {
+            NoteDate.Notes note = activeChartData.notes[i];
 
-        // 曲切り替えUIボタン
-        if (GUI.Button(new Rect(20, 115, 100, 30), "? 前の曲"))
-        {
-            RefleshSongListAndLoad(currentMusicIndex - 1);
+            // ロングノーツは1つのPrefabに収まっているため、Long_End単体では描画しない
+            if (note.noteType == NoteDate.NotesType.Long_End) continue;
+
+            // ロングノーツの場合は終端（targetTime + Length）が過ぎるまで表示範囲に含める
+            float noteEndTime = (note.noteType == NoteDate.NotesType.Long_Start)
+                ? note.targetTime + note.Length
+                : note.targetTime;
+
+            if (noteEndTime < currentTime - 0.1f || note.targetTime > currentTime + preSpawn)
+            {
+                continue;
+            }
+
+            if (note.lane < 0 || note.lane >= laneSpawnPoints.Length || note.lane >= laneJudgePoints.Length) continue;
+            if (laneSpawnPoints[note.lane] == null || laneJudgePoints[note.lane] == null) continue;
+
+            GameObject targetPrefab = GetPrefabForNoteType(note.noteType);
+            if (targetPrefab == null) continue;
+
+            GameObject previewObj = GetOrCreatePooledObject(targetPrefab, usedCountPerPrefab);
+            previewObj.SetActive(true);
+
+            Vector3 spawnPos = laneSpawnPoints[note.lane].position;
+            Vector3 judgePos = laneJudgePoints[note.lane].position;
+
+            float progress = 1f - ((note.targetTime - currentTime) / preSpawn);
+            previewObj.transform.position = Vector3.LerpUnclamped(spawnPos, judgePos, progress);
+
+            // NotesConが付いているPrefabなら、以前のChretCreateManagerと同様にInit＆SetEndTimeで長さを反映
+            if (note.noteType == NoteDate.NotesType.Long_Start && previewObj.TryGetComponent<NotesCon>(out var notesCon))
+            {
+                NoteDate.Notes previewData = note;
+                notesCon.Init(previewData, preSpawn, judgePos);
+                notesCon.SetEndTime(note.targetTime + note.Length);
+            }
         }
-        if (GUI.Button(new Rect(130, 115, 100, 30), "次の曲 ?"))
+    }
+
+    private GameObject GetPrefabForNoteType(NoteDate.NotesType type)
+    {
+        for (int i = 0; i < notePrefabConfigs.Count; i++)
         {
-            RefleshSongListAndLoad(currentMusicIndex + 1);
+            if (notePrefabConfigs[i].noteType == type && notePrefabConfigs[i].prefab != null)
+            {
+                return notePrefabConfigs[i].prefab;
+            }
         }
-        if (GUI.Button(new Rect(240, 115, 120, 30), "リスト更新"))
+        return defaultPreviewPrefab;
+    }
+
+    private GameObject GetOrCreatePooledObject(GameObject prefab, Dictionary<GameObject, int> usedCounts)
+    {
+        if (!previewPools.ContainsKey(prefab))
         {
-            RefleshSongListAndLoad(currentMusicIndex);
+            previewPools[prefab] = new List<GameObject>();
+        }
+        if (!usedCounts.ContainsKey(prefab))
+        {
+            usedCounts[prefab] = 0;
         }
 
-        GUI.Label(new Rect(20, 155, 360, 20), "Ctrl+S: 保存 | Ctrl+L: ロード | Space: 再生/停止");
+        List<GameObject> pool = previewPools[prefab];
+        int index = usedCounts[prefab];
+
+        while (pool.Count <= index)
+        {
+            GameObject instance = Instantiate(prefab, transform);
+            DisableInGameScripts(instance);
+            pool.Add(instance);
+        }
+
+        usedCounts[prefab] = index + 1;
+        return pool[index];
+    }
+
+    private void DisableInGameScripts(GameObject obj)
+    {
+        MonoBehaviour[] scripts = obj.GetComponentsInChildren<MonoBehaviour>(true);
+        for (int i = 0; i < scripts.Length; i++)
+        {
+            // UI表示(Image等)とロングノーツ形状更新用のNotesConは残し、それ以外の移動・判定スクリプトを無効化
+            if (scripts[i] != null && !(scripts[i] is Graphic) && !(scripts[i] is NotesCon))
+            {
+                scripts[i].enabled = false;
+            }
+        }
+
+        Collider[] colliders3D = obj.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders3D.Length; i++)
+        {
+            colliders3D[i].enabled = false;
+        }
+
+        Collider2D[] colliders2D = obj.GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < colliders2D.Length; i++)
+        {
+            colliders2D[i].enabled = false;
+        }
+    }
+
+    private void ClearAllPreviewObjects()
+    {
+        foreach (var kvp in previewPools)
+        {
+            foreach (var obj in kvp.Value)
+            {
+                if (obj != null) Destroy(obj);
+            }
+        }
+        previewPools.Clear();
     }
 }

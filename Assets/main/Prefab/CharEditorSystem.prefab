@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8769232605130447127
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8032394771528501582}
+  - component: {fileID: 5864340263004234556}
+  - component: {fileID: 2544908863946394429}
+  - component: {fileID: 1654512737174022640}
+  m_Layer: 0
+  m_Name: CharEditorSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8032394771528501582
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8769232605130447127}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 7.07214, y: 0.60658, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5864340263004234556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8769232605130447127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3915adc145d3fe647b00d5fef180c6d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChartEditorGrid
+  editorManager: {fileID: 2544908863946394429}
+  gridLinePrefab: {fileID: 159661752225596499, guid: f15e95be1b46e2e429dba44ac94033a5, type: 3}
+  spawnPoint: {fileID: 0}
+  targetPoint: {fileID: 0}
+  isSnapEnabled: 1
+  isGridVisible: 1
+  beatDivision: 4
+  colorQuarter: {r: 1, g: 1, b: 1, a: 1}
+  colorEighth: {r: 0, g: 1, b: 1, a: 1}
+  colorSixteenth: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  colorThirtySecond: {r: 1, g: 0, b: 1, a: 1}
+--- !u!114 &2544908863946394429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8769232605130447127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 426efd69b04f64d409376ea5d16e8d3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChartEditorManager
+  activeChartData:
+    title: Default Title
+    artist: Default Artist
+    audiofileName: Song.ogg
+    bpm: 120
+    offset: 0
+    notes: []
+  currentSaveFileName: NewChartData.json
+  shortNotePrefab: {fileID: 4840576891515199272, guid: ef626289d91b18a42b70ea45cb893be7, type: 3}
+  longNotePrefab: {fileID: 8061254861229451224, guid: aecf8fada6d1c8544af995b0b493b2c6, type: 3}
+  rushNotePrefab: {fileID: 6809138255932206062, guid: 19c041121a8646245ac7c7654e5e9197, type: 3}
+  bothNotePrefab: {fileID: 3008193956529401945, guid: 796c979725b66624381629a48e9e8601, type: 3}
+  spawnPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  targetCircles:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  bothSpawnPoint: {fileID: 0}
+  bothTargetCircle: {fileID: 0}
+  preSpawnTime: 1
+  notsSpawn: {fileID: 0}
+  rushInterval: 0.1
+--- !u!114 &1654512737174022640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8769232605130447127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fad6f9499a71a624fbf740fc5c3078b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EditorInput
