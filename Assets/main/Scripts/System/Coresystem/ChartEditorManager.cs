@@ -13,18 +13,22 @@ public struct NotePrefabConfig
 public class ChartEditorManager : MonoBehaviour
 {
     [Header("シーン上のオブジェクト参照")]
+    [Tooltip("インゲームと同じNotsSpawnを指定すると移動時間(preSpawnTime)が完全一致します")]
     [SerializeField] private NotsSpawn notsSpawn;
     [SerializeField] private ChartEditorGrid editorGrid;
-    [SerializeField] private Text currentSongText;
-    [SerializeField] private Text timeDisplayText;
 
     [Header("プレビューレーン設定 (5レーン対応: Element 0?4)")]
+    [Tooltip("インゲーム側のノーツ出現位置（エディタではノーツの到達・消滅地点）")]
     [SerializeField] private Transform[] laneSpawnPoints = new Transform[5];
+    [Tooltip("インゲーム側の判定位置（エディタでは叩いた瞬間の出現地点）")]
     [SerializeField] private Transform[] laneJudgePoints = new Transform[5];
     [SerializeField] private float defaultPreSpawnTime = 2.0f;
 
+    [Header("プレビュー表示の調整")]
+    [Tooltip("ロングノーツのローカルY軸(trailObject)をレーン方向(Judge->Spawn)に自動回転させる")]
+    [SerializeField] private bool alignLongTrailToLaneDirection = true;
+
     [Header("ノーツ種別ごとのPrefab設定（ロングはLong_Startに1つだけ設定）")]
-    [Tooltip("未設定のNotesTypeが来たときの予備Prefab")]
     [SerializeField] private GameObject defaultPreviewPrefab;
     [SerializeField] private List<NotePrefabConfig> notePrefabConfigs = new List<NotePrefabConfig>()
     {
@@ -35,9 +39,15 @@ public class ChartEditorManager : MonoBehaviour
         new NotePrefabConfig { noteType = NoteDate.NotesType.Damage, prefab = null }
     };
 
+    [Header("GUI表示設定")]
+    [SerializeField] private bool showEditorGUI = true;
+
     private List<SongDirectory> availableSongs = new List<SongDirectory>();
     private int selectedSongIndex = 0;
     private string currentMusicPath = "";
+    private string currentSongTitle = "未ロード";
+    private string statusMessage = "初期化中...";
+    private Vector2 songScrollPos = Vector2.zero;
 
     public ChartData activeChartData = new ChartData();
     public float PrespawnTime => notsSpawn != null ? notsSpawn.preSpawnTime : defaultPreSpawnTime;
@@ -45,29 +55,50 @@ public class ChartEditorManager : MonoBehaviour
 
     private Dictionary<GameObject, List<GameObject>> previewPools = new Dictionary<GameObject, List<GameObject>>();
 
+    // 入力中（押下中）のリアルタイム仮プレビュー用 (5レーン分)
+    private GameObject[] activeHoldPreviewObjs = new GameObject[5];
+    private float[] activeHoldStartTimes = new float[5];
+    private bool[] activeHoldIsLong = new bool[5];
+
     private void Awake()
     {
         if (editorGrid == null)
         {
             editorGrid = GetComponent<ChartEditorGrid>();
         }
+
+        transform.position = Vector3.zero;
+        transform.rotation = Quaternion.identity;
+        transform.localScale = Vector3.one;
     }
 
     private void Start()
     {
+        if (AudioManager.Instance == null)
+        {
+            AudioManager found = FindObjectOfType<AudioManager>();
+            if (found == null)
+            {
+                statusMessage = "エラー: シーンにAudioManagerがありません！";
+                Debug.LogError("[ChartEditor] シーン上に AudioManager が配置されていません！");
+                return;
+            }
+        }
+
         RefreshSongListAndLoad(0);
     }
 
     private void Update()
     {
-        UpdateTimeDisplay();
         UpdatePreviewNotes();
+        UpdateActiveHoldPreviews();
     }
 
     public void RefreshSongListAndLoad(int index = 0)
     {
         IsAudioReady = false;
         ClearAllPreviewObjects();
+        CancelAllActiveHoldPreviews();
         if (editorGrid != null) editorGrid.ResetGridState();
 
         availableSongs = SongDirectoryManager.GetSongDirectories();
@@ -75,7 +106,8 @@ public class ChartEditorManager : MonoBehaviour
         if (availableSongs.Count == 0)
         {
             currentMusicPath = "";
-            if (currentSongText != null) currentSongText.text = "N/A";
+            currentSongTitle = "曲フォルダなし (Assets/Songs/)";
+            statusMessage = "Assets/Songs/[曲名]/ に音源を入れて再スキャンしてください";
             Debug.LogWarning("[ChartEditor] Assets/Songs/ 内に有効な曲フォルダが見つかりません。");
             return;
         }
@@ -83,10 +115,13 @@ public class ChartEditorManager : MonoBehaviour
         selectedSongIndex = Mathf.Clamp(index, 0, availableSongs.Count - 1);
         SongDirectory currentSong = availableSongs[selectedSongIndex];
         currentMusicPath = currentSong.folderPath;
+        currentSongTitle = currentSong.folderName;
+        statusMessage = $"音源ロード中: {currentSongTitle}...";
 
-        if (currentSongText != null)
+        if (AudioManager.Instance == null)
         {
-            currentSongText.text = currentSong.folderName;
+            statusMessage = "エラー: AudioManager.Instance が null です";
+            return;
         }
 
         StartCoroutine(AudioManager.Instance.LoadAudioClipFromPath(currentSong.audioPath, (success) =>
@@ -95,11 +130,14 @@ public class ChartEditorManager : MonoBehaviour
             {
                 IsAudioReady = true;
                 LoadChartData(currentSong.jsonPath);
+                statusMessage = "準備完了 (Spaceで再生/停止)";
+                Debug.Log($"[ChartEditor] ロード完了: {currentSongTitle} ({currentSong.audioPath})");
             }
             else
             {
                 IsAudioReady = false;
-                Debug.LogError($"[ChartEditor] 音源のロードに失敗しました: {currentSong.folderName}");
+                statusMessage = $"ロード失敗: {currentSong.audioPath}";
+                Debug.LogError($"[ChartEditor] 音源のロードに失敗しました: {currentSong.audioPath}");
             }
         }));
     }
@@ -116,6 +154,156 @@ public class ChartEditorManager : MonoBehaviour
         if (availableSongs.Count == 0) return;
         int prevIndex = (selectedSongIndex - 1 + availableSongs.Count) % availableSongs.Count;
         RefreshSongListAndLoad(prevIndex);
+    }
+
+    private void GetLaneEndpoints(int laneIndex, out Vector3 spawnPos, out Vector3 judgePos)
+    {
+        judgePos = (laneJudgePoints != null && laneIndex < laneJudgePoints.Length && laneJudgePoints[laneIndex] != null)
+            ? laneJudgePoints[laneIndex].position
+            : Vector3.zero;
+
+        spawnPos = (laneSpawnPoints != null && laneIndex < laneSpawnPoints.Length && laneSpawnPoints[laneIndex] != null)
+            ? laneSpawnPoints[laneIndex].position
+            : judgePos + Vector3.right * 10f;
+
+        if (Vector3.Distance(spawnPos, judgePos) < 0.01f)
+        {
+            spawnPos = judgePos + Vector3.right * 10f;
+        }
+    }
+
+    private void AlignLongNoteOrientationForEditor(GameObject obj, Vector3 spawnPos, Vector3 judgePos)
+    {
+        if (!alignLongTrailToLaneDirection) return;
+
+        Vector3 dirToJudge = (judgePos - spawnPos).normalized;
+        if (dirToJudge.sqrMagnitude > 0.001f)
+        {
+            obj.transform.rotation = Quaternion.FromToRotation(Vector3.up, dirToJudge);
+        }
+    }
+
+    /// <summary>
+    /// キーを押した瞬間に呼ばれ、JudgePointのど真ん中から即座に仮プレビューを発射する
+    /// </summary>
+    public void BeginTapOrHoldPreview(int laneIndex, float startTime, NoteDate.NotesType initialType)
+    {
+        if (laneIndex < 0 || laneIndex >= 5) return;
+        CancelHoldPreview(laneIndex);
+
+        activeHoldStartTimes[laneIndex] = startTime;
+        activeHoldIsLong[laneIndex] = false;
+
+        GameObject prefab = GetPrefabForNoteType(initialType);
+        if (prefab == null) prefab = defaultPreviewPrefab;
+        if (prefab == null) return;
+
+        GetLaneEndpoints(laneIndex, out Vector3 spawnPos, out Vector3 judgePos);
+
+        GameObject obj = Instantiate(prefab, judgePos, Quaternion.identity, transform);
+        DisableInGameScripts(obj);
+        activeHoldPreviewObjs[laneIndex] = obj;
+    }
+
+    /// <summary>
+    /// 押し続け時間がロング閾値を超えた瞬間、仮ショートノーツをロングノーツプレビューへ昇格させる
+    /// </summary>
+    public void PromotePreviewToLong(int laneIndex)
+    {
+        if (laneIndex < 0 || laneIndex >= 5) return;
+
+        float startTime = activeHoldStartTimes[laneIndex];
+        CancelHoldPreview(laneIndex);
+
+        activeHoldStartTimes[laneIndex] = startTime;
+        activeHoldIsLong[laneIndex] = true;
+
+        GameObject longPrefab = GetPrefabForNoteType(NoteDate.NotesType.Long_Start);
+        if (longPrefab == null) longPrefab = defaultPreviewPrefab;
+        if (longPrefab == null) return;
+
+        GetLaneEndpoints(laneIndex, out Vector3 spawnPos, out Vector3 judgePos);
+
+        float currentTime = AudioManager.Instance != null ? AudioManager.Instance.GetCurrentTime() : startTime;
+        float progress = Mathf.Max(0f, (currentTime - startTime) / PrespawnTime);
+        Vector3 currentPos = Vector3.LerpUnclamped(judgePos, spawnPos, progress);
+
+        GameObject obj = Instantiate(longPrefab, currentPos, Quaternion.identity, transform);
+        DisableInGameScripts(obj);
+        AlignLongNoteOrientationForEditor(obj, spawnPos, judgePos);
+        activeHoldPreviewObjs[laneIndex] = obj;
+
+        if (obj.TryGetComponent<NotesCon>(out var notesCon))
+        {
+            NoteDate.Notes tempNote = new NoteDate.Notes
+            {
+                lane = laneIndex,
+                targetTime = startTime,
+                noteType = NoteDate.NotesType.Long_Start
+            };
+            obj.transform.position = spawnPos;
+            notesCon.Init(tempNote, PrespawnTime, judgePos);
+            notesCon.SetEndTime(currentTime);
+            obj.transform.position = currentPos;
+        }
+    }
+
+    public void CancelHoldPreview(int laneIndex)
+    {
+        if (laneIndex < 0 || laneIndex >= 5) return;
+        if (activeHoldPreviewObjs[laneIndex] != null)
+        {
+            Destroy(activeHoldPreviewObjs[laneIndex]);
+            activeHoldPreviewObjs[laneIndex] = null;
+        }
+        activeHoldIsLong[laneIndex] = false;
+    }
+
+    private void CancelAllActiveHoldPreviews()
+    {
+        for (int i = 0; i < activeHoldPreviewObjs.Length; i++)
+        {
+            CancelHoldPreview(i);
+        }
+    }
+
+    /// <summary>
+    /// 押下中の仮ノーツ（ショート／ロング両方）を毎フレーム滑らかに前進・伸長させる
+    /// </summary>
+    private void UpdateActiveHoldPreviews()
+    {
+        if (!IsAudioReady || AudioManager.Instance == null) return;
+        float currentTime = AudioManager.Instance.GetCurrentTime();
+        float preSpawn = PrespawnTime;
+
+        for (int i = 0; i < activeHoldPreviewObjs.Length; i++)
+        {
+            GameObject obj = activeHoldPreviewObjs[i];
+            if (obj == null) continue;
+
+            float startTime = activeHoldStartTimes[i];
+            float duration = Mathf.Max(0f, currentTime - startTime);
+            GetLaneEndpoints(i, out Vector3 spawnPos, out Vector3 judgePos);
+
+            float progress = Mathf.Max(0f, (currentTime - startTime) / preSpawn);
+            obj.transform.position = Vector3.LerpUnclamped(judgePos, spawnPos, progress);
+
+            if (activeHoldIsLong[i])
+            {
+                if (obj.TryGetComponent<NotesCon>(out var notesCon))
+                {
+                    notesCon.SetEndTime(startTime + duration);
+                }
+                else
+                {
+                    float totalDist = Vector3.Distance(spawnPos, judgePos);
+                    float dist = totalDist * (duration / preSpawn);
+                    Vector3 s = obj.transform.localScale;
+                    s.y = Mathf.Max(0.2f, dist);
+                    obj.transform.localScale = s;
+                }
+            }
+        }
     }
 
     public void AddNoteAtTime(int laneIndex, float time, NoteDate.NotesType type, float length = 0f)
@@ -135,7 +323,7 @@ public class ChartEditorManager : MonoBehaviour
         InsertNoteInternal(laneIndex, snappedStart, NoteDate.NotesType.Long_Start, finalLength, false);
         InsertNoteInternal(laneIndex, snappedEnd, NoteDate.NotesType.Long_End, 0f, false);
 
-        Debug.Log($"[ChartEditor] ロングノーツ確定 - Lane: {laneIndex}, Start: {snappedStart:F3}s, End: {snappedEnd:F3}s, Length: {finalLength:F3}s");
+        statusMessage = $"ロング登録: Lane {laneIndex} ({snappedStart:F2}s ? {snappedEnd:F2}s)";
     }
 
     public bool TryMarkSimultaneousNoteAsBoth(float targetTime, float threshold)
@@ -177,6 +365,7 @@ public class ChartEditorManager : MonoBehaviour
         activeChartData.notes.Add(newNote);
         SortAndReindexNotes();
 
+        statusMessage = $"登録: {type} | Lane {laneIndex} | {finalTime:F2}s";
         Debug.Log($"[ChartEditor] ノーツ登録 - Lane: {laneIndex}, Type: {type}, Time: {finalTime:F3}s, Length: {length:F2}s (総数: {activeChartData.notes.Count})");
     }
 
@@ -204,7 +393,7 @@ public class ChartEditorManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(currentMusicPath))
         {
-            Debug.LogWarning("[ChartEditor] 保存先の曲フォルダが選択されていません。");
+            statusMessage = "保存失敗: 曲フォルダ未選択";
             return;
         }
 
@@ -213,11 +402,12 @@ public class ChartEditorManager : MonoBehaviour
 
         if (File.Exists(savePath))
         {
+            statusMessage = $"保存完了！ ({activeChartData.notes.Count} ノーツ)";
             Debug.Log($"[ChartEditor] JSON保存完了: {savePath} (ノーツ数: {activeChartData.notes.Count})");
         }
         else
         {
-            Debug.LogError($"[ChartEditor] JSONの書き出しに失敗しました: {savePath}");
+            statusMessage = "保存エラー: ファイル書き出し失敗";
         }
     }
 
@@ -229,30 +419,14 @@ public class ChartEditorManager : MonoBehaviour
             if (activeChartData == null) activeChartData = new ChartData();
             if (activeChartData.notes == null) activeChartData.notes = new List<NoteDate.Notes>();
             if (activeChartData.bpm <= 0) activeChartData.bpm = 120f;
-
-            Debug.Log($"[ChartEditor] 既存JSONロード完了: {activeChartData.notes.Count} ノーツ (BPM: {activeChartData.bpm})");
         }
         else
         {
             activeChartData = new ChartData();
             if (activeChartData.bpm <= 0) activeChartData.bpm = 120f;
-            Debug.Log($"[ChartEditor] 新規譜面として初期化しました (デフォルトBPM: {activeChartData.bpm})。");
         }
     }
 
-    private void UpdateTimeDisplay()
-    {
-        if (timeDisplayText == null || AudioManager.Instance == null) return;
-
-        float current = AudioManager.Instance.GetCurrentTime();
-        float total = AudioManager.Instance.GetTotalDuration();
-        timeDisplayText.text = $"{current:F2}s / {total:F2}s";
-    }
-
-    /// <summary>
-    /// NotesTypeごとに設定されたPrefabを使って現在表示範囲のノーツを描画
-    /// ロングノーツは Long_Start の1つのPrefabで始点?終点（targetTime + Length）を表現
-    /// </summary>
     private void UpdatePreviewNotes()
     {
         if (!IsAudioReady || laneSpawnPoints == null || laneJudgePoints == null) return;
@@ -274,21 +448,18 @@ public class ChartEditorManager : MonoBehaviour
         {
             NoteDate.Notes note = activeChartData.notes[i];
 
-            // ロングノーツは1つのPrefabに収まっているため、Long_End単体では描画しない
             if (note.noteType == NoteDate.NotesType.Long_End) continue;
 
-            // ロングノーツの場合は終端（targetTime + Length）が過ぎるまで表示範囲に含める
             float noteEndTime = (note.noteType == NoteDate.NotesType.Long_Start)
                 ? note.targetTime + note.Length
                 : note.targetTime;
 
-            if (noteEndTime < currentTime - 0.1f || note.targetTime > currentTime + preSpawn)
+            if (currentTime < note.targetTime - 0.05f || currentTime > noteEndTime + preSpawn)
             {
                 continue;
             }
 
             if (note.lane < 0 || note.lane >= laneSpawnPoints.Length || note.lane >= laneJudgePoints.Length) continue;
-            if (laneSpawnPoints[note.lane] == null || laneJudgePoints[note.lane] == null) continue;
 
             GameObject targetPrefab = GetPrefabForNoteType(note.noteType);
             if (targetPrefab == null) continue;
@@ -296,19 +467,23 @@ public class ChartEditorManager : MonoBehaviour
             GameObject previewObj = GetOrCreatePooledObject(targetPrefab, usedCountPerPrefab);
             previewObj.SetActive(true);
 
-            Vector3 spawnPos = laneSpawnPoints[note.lane].position;
-            Vector3 judgePos = laneJudgePoints[note.lane].position;
+            GetLaneEndpoints(note.lane, out Vector3 spawnPos, out Vector3 judgePos);
 
-            float progress = 1f - ((note.targetTime - currentTime) / preSpawn);
-            previewObj.transform.position = Vector3.LerpUnclamped(spawnPos, judgePos, progress);
-
-            // NotesConが付いているPrefabなら、以前のChretCreateManagerと同様にInit＆SetEndTimeで長さを反映
-            if (note.noteType == NoteDate.NotesType.Long_Start && previewObj.TryGetComponent<NotesCon>(out var notesCon))
+            if (note.noteType == NoteDate.NotesType.Long_Start)
             {
-                NoteDate.Notes previewData = note;
-                notesCon.Init(previewData, preSpawn, judgePos);
-                notesCon.SetEndTime(note.targetTime + note.Length);
+                AlignLongNoteOrientationForEditor(previewObj, spawnPos, judgePos);
+
+                if (previewObj.TryGetComponent<NotesCon>(out var notesCon))
+                {
+                    previewObj.transform.position = spawnPos;
+                    notesCon.Init(note, preSpawn, judgePos);
+                    notesCon.SetEndTime(note.targetTime + note.Length);
+                }
             }
+
+            // 未来拍スナップ時に判定ラインより手前へ飛び出さないよう 0f 以上にクランプ
+            float progress = Mathf.Max(0f, (currentTime - note.targetTime) / preSpawn);
+            previewObj.transform.position = Vector3.LerpUnclamped(judgePos, spawnPos, progress);
         }
     }
 
@@ -354,8 +529,7 @@ public class ChartEditorManager : MonoBehaviour
         MonoBehaviour[] scripts = obj.GetComponentsInChildren<MonoBehaviour>(true);
         for (int i = 0; i < scripts.Length; i++)
         {
-            // UI表示(Image等)とロングノーツ形状更新用のNotesConは残し、それ以外の移動・判定スクリプトを無効化
-            if (scripts[i] != null && !(scripts[i] is Graphic) && !(scripts[i] is NotesCon))
+            if (scripts[i] != null && !(scripts[i] is Graphic))
             {
                 scripts[i].enabled = false;
             }
@@ -384,5 +558,87 @@ public class ChartEditorManager : MonoBehaviour
             }
         }
         previewPools.Clear();
+    }
+
+    private void OnGUI()
+    {
+        if (!showEditorGUI) return;
+
+        float panelWidth = 400f;
+        float panelHeight = 445f;
+        float margin = 10f;
+
+        float startX = Screen.width - panelWidth - margin;
+        float startY = Screen.height - panelHeight - margin;
+
+        GUI.BeginGroup(new Rect(startX, startY, panelWidth, panelHeight));
+
+        GUI.Box(new Rect(0, 0, panelWidth, panelHeight), "? 譜面作成エディタ (5レーン対応)");
+
+        GUI.Label(new Rect(10, 25, 380, 22), $"選択中 [{selectedSongIndex + 1}/{Mathf.Max(1, availableSongs.Count)}]: {currentSongTitle}");
+
+        if (GUI.Button(new Rect(10, 50, 115, 25), "? 前の曲"))
+        {
+            SelectPrevSong();
+        }
+        if (GUI.Button(new Rect(135, 50, 115, 25), "次の曲 ?"))
+        {
+            SelectNextSong();
+        }
+        if (GUI.Button(new Rect(260, 50, 130, 25), "? 再スキャン"))
+        {
+            RefreshSongListAndLoad(selectedSongIndex);
+        }
+
+        if (availableSongs.Count > 0)
+        {
+            GUI.Box(new Rect(10, 80, 380, 85), "");
+            songScrollPos = GUI.BeginScrollView(new Rect(12, 82, 376, 81), songScrollPos, new Rect(0, 0, 355, availableSongs.Count * 24));
+            for (int i = 0; i < availableSongs.Count; i++)
+            {
+                string prefix = (i == selectedSongIndex) ? "? " : "  ";
+                if (GUI.Button(new Rect(2, i * 24, 350, 22), $"{prefix}{availableSongs[i].folderName}"))
+                {
+                    RefreshSongListAndLoad(i);
+                }
+            }
+            GUI.EndScrollView();
+        }
+
+        float currentTime = (AudioManager.Instance != null) ? AudioManager.Instance.GetCurrentTime() : 0f;
+        float totalTime = (AudioManager.Instance != null) ? AudioManager.Instance.GetTotalDuration() : 0f;
+        bool isPlaying = (AudioManager.Instance != null) && AudioManager.Instance.IsBGMPlaying();
+
+        string stateLabel = isPlaying ? "<color=lime>? 再生中</color>" : "<color=yellow>? 停止中</color>";
+        GUI.Label(new Rect(10, 172, 380, 22), $"状態: {stateLabel}   時間: {currentTime:F2}s / {totalTime:F2}s");
+        GUI.Label(new Rect(10, 194, 380, 22), $"BPM: {activeChartData.bpm}   記録ノーツ数: {activeChartData.notes.Count}");
+        GUI.Label(new Rect(10, 216, 380, 22), $"ステータス: {statusMessage}");
+
+        if (editorGrid != null)
+        {
+            string snapText = editorGrid.isSnapEnabled ? $"スナップ: ON (1/{editorGrid.beatDivision})" : "スナップ: OFF";
+            if (GUI.Button(new Rect(10, 245, 185, 25), snapText))
+            {
+                editorGrid.isSnapEnabled = !editorGrid.isSnapEnabled;
+            }
+            if (GUI.Button(new Rect(205, 245, 185, 25), "分割変更 (4/8/16/32)"))
+            {
+                editorGrid.CycleDivision();
+            }
+        }
+
+        GUI.Label(new Rect(10, 280, 380, 20), "【キーボード操作】");
+        GUI.Label(new Rect(10, 300, 380, 20), "Space : 再生 / 一時停止");
+        GUI.Label(new Rect(10, 320, 380, 20), "D / F / G / H / J : 5レーン入力 (長押しでロング)");
+        GUI.Label(new Rect(10, 340, 380, 20), "複数同時押し : 自動で Both 登録");
+        GUI.Label(new Rect(10, 360, 380, 20), "← / → : 5秒スキップ");
+        GUI.Label(new Rect(10, 380, 380, 20), "F5 : chart.json に保存");
+
+        if (GUI.Button(new Rect(10, 402, 380, 26), "? 譜面を保存 (F5)"))
+        {
+            SaveChartData();
+        }
+
+        GUI.EndGroup();
     }
 }

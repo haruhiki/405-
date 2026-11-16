@@ -11,7 +11,7 @@ public struct NoteModifierMapping
 
 public class EditorInput : MonoBehaviour
 {
-   [Header("連携先マネージャー")]
+ [Header("連携先マネージャー")]
     [SerializeField] private ChartEditorManager editorManager;
 
     [Header("再生・保存キー設定")]
@@ -38,21 +38,27 @@ public class EditorInput : MonoBehaviour
     };
 
     [Header("ノーツ自動判定のしきい値 (秒)")]
-    [Tooltip("この時間以上押し続けたらロングノーツとして登録")]
-    [SerializeField] private float longNoteThreshold = 0.20f;
-    [Tooltip("この時間差以内の複数押しを同時押し(Both)として判定")]
+    [Tooltip("この秒数以上押し続けるとロングノーツになります")]
+    [SerializeField] private float longNoteThreshold = 0.32f;
     [SerializeField] private float bothNoteThreshold = 0.05f;
     [SerializeField] private float skipSeconds = 5.0f;
 
-    // 各レーンの押下状態管理
     private float[] pressStartTimes = new float[5];
     private bool[] isKeyPressed = new bool[5];
+    private bool[] hasPromotedToLong = new bool[5];
+
+    private void Awake()
+    {
+        if (editorManager == null)
+        {
+            editorManager = GetComponent<ChartEditorManager>();
+        }
+    }
 
     private void Update()
     {
         if (editorManager == null || AudioManager.Instance == null) return;
 
-        // 1. BGMの再生 / 一時停止 (Space)
         if (Input.GetKeyDown(playPauseKey))
         {
             if (editorManager.IsAudioReady)
@@ -65,23 +71,22 @@ public class EditorInput : MonoBehaviour
             }
         }
 
-        // 2. 譜面データの保存 (F5)
         if (Input.GetKeyDown(saveKey))
         {
             editorManager.SaveChartData();
         }
 
-        // 3. 早送り / 巻き戻し (左右矢印キー)
         if (Input.GetKeyDown(skipForwardKey))
         {
             AudioManager.Instance.SkipTime(skipSeconds);
+            if (TryGetComponent<ChartEditorGrid>(out var grid)) grid.ResetGridState();
         }
         if (Input.GetKeyDown(skipBackwardKey))
         {
             AudioManager.Instance.SkipTime(-skipSeconds);
+            if (TryGetComponent<ChartEditorGrid>(out var grid)) grid.ResetGridState();
         }
 
-        // 4. 5レーン入力（Short / Long / Both / 特殊ノーツ判定）
         HandleLaneInputs();
     }
 
@@ -92,17 +97,38 @@ public class EditorInput : MonoBehaviour
         float currentTime = AudioManager.Instance.GetCurrentTime();
         int laneCount = Mathf.Min(laneKeys.Length, 5);
 
-        // キーを押した瞬間：開始時刻を記録
+        // 1. キーを押した瞬間：即座にJudgePointから仮ショートノーツを発射する（離すまでのタイムラグ消去）
         for (int i = 0; i < laneCount; i++)
         {
             if (Input.GetKeyDown(laneKeys[i]))
             {
                 pressStartTimes[i] = currentTime;
                 isKeyPressed[i] = true;
+                hasPromotedToLong[i] = false;
+
+                NoteDate.NotesType initialType = TryGetActiveModifierNoteType(out var modType)
+                    ? modType
+                    : NoteDate.NotesType.Short;
+
+                editorManager.BeginTapOrHoldPreview(i, currentTime, initialType);
             }
         }
 
-        // キーを離した瞬間：押下時間・修飾キー・同時押し状況に応じて確定
+        // 2. 押し続けている間：longNoteThreshold を超えたらロングノーツ表示へ昇格
+        for (int i = 0; i < laneCount; i++)
+        {
+            if (isKeyPressed[i] && !hasPromotedToLong[i])
+            {
+                float holdDuration = currentTime - pressStartTimes[i];
+                if (holdDuration >= longNoteThreshold)
+                {
+                    hasPromotedToLong[i] = true;
+                    editorManager.PromotePreviewToLong(i);
+                }
+            }
+        }
+
+        // 3. キーを離した瞬間：仮プレビューを消して正式データへ登録
         for (int i = 0; i < laneCount; i++)
         {
             if (Input.GetKeyUp(laneKeys[i]) && isKeyPressed[i])
@@ -110,34 +136,30 @@ public class EditorInput : MonoBehaviour
                 float startTime = pressStartTimes[i];
                 float holdDuration = currentTime - startTime;
                 isKeyPressed[i] = false;
+                hasPromotedToLong[i] = false;
 
-                // A. 修飾キー（Damage / Flick / 将来追加ノーツ等）が押されているかチェック
+                editorManager.CancelHoldPreview(i);
+
                 if (TryGetActiveModifierNoteType(out NoteDate.NotesType specialType))
                 {
                     editorManager.AddNoteAtTime(i, startTime, specialType, holdDuration >= longNoteThreshold ? holdDuration : 0f);
                     continue;
                 }
 
-                // B. ロングノーツ判定（一定時間以上押し続けた場合）
                 if (holdDuration >= longNoteThreshold)
                 {
                     editorManager.AddLongNote(i, startTime, currentTime, holdDuration);
                 }
-                // C. 単押し / 同時押し判定
                 else
                 {
                     bool isBoth = CheckIsBothNote(i, startTime, laneCount);
                     NoteDate.NotesType type = isBoth ? NoteDate.NotesType.Both : NoteDate.NotesType.Short;
-
                     editorManager.AddNoteAtTime(i, startTime, type, 0f);
                 }
             }
         }
     }
 
-    /// <summary>
-    /// 現在押下中の修飾キーに対応する NotesType があれば取得する
-    /// </summary>
     private bool TryGetActiveModifierNoteType(out NoteDate.NotesType matchedType)
     {
         for (int i = 0; i < modifierMappings.Count; i++)
@@ -152,12 +174,8 @@ public class EditorInput : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 同時押し（Both）かどうかを判定
-    /// </summary>
     private bool CheckIsBothNote(int currentLane, float startTime, int laneCount)
     {
-        // 1. 現在ほかに押されているレーンの開始時刻が近い場合
         for (int j = 0; j < laneCount; j++)
         {
             if (j == currentLane) continue;
@@ -166,9 +184,8 @@ public class EditorInput : MonoBehaviour
                 return true;
             }
         }
-
-        // 2. 先に離されて登録済みの直前ノーツと開始時刻がほぼ同じ場合、既存ノーツも Both に更新
         return editorManager.TryMarkSimultaneousNoteAsBoth(startTime, bothNoteThreshold);
     }
+
 
 }

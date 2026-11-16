@@ -1,0 +1,69 @@
+{
+    "title": "Default Title",
+    "artist": "Default Artist",
+    "audiofileName": "Song.ogg",
+    "bpm": 120.0,
+    "offset": 0.0,
+    "notes": [
+        {
+            "id": 0,
+            "targetTime": 3.0,
+            "lane": 1,
+            "targetPosition": {
+                "x": -7.961899757385254,
+                "y": 2.159639835357666,
+                "z": 0.0
+            },
+            "noteType": 0,
+            "Length": 0.0
+        },
+        {
+            "id": 1,
+            "targetTime": 3.25,
+            "lane": 0,
+            "targetPosition": {
+                "x": -7.981899738311768,
+                "y": 3.099639892578125,
+                "z": 0.0
+            },
+            "noteType": 0,
+            "Length": 0.0
+        },
+        {
+            "id": 2,
+            "targetTime": 5.0,
+            "lane": 1,
+            "targetPosition": {
+                "x": -7.961899757385254,
+                "y": 2.159639835357666,
+                "z": 0.0
+            },
+            "noteType": 4,
+            "Length": 0.0
+        },
+        {
+            "id": 3,
+            "targetTime": 5.0,
+            "lane": 0,
+            "targetPosition": {
+                "x": -7.981899738311768,
+                "y": 3.099639892578125,
+                "z": 0.0
+            },
+            "noteType": 4,
+            "Length": 0.0
+        },
+        {
+            "id": 4,
+            "targetTime": 5.75,
+            "lane": 1,
+            "targetPosition": {
+                "x": -7.961899757385254,
+                "y": 2.159639835357666,
+                "z": 0.0
+            },
+            "noteType": 0,
+            "Length": 0.0
+        }
+    ]
+}

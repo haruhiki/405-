@@ -1,153 +1,145 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ChartEditorGrid : MonoBehaviour
 {
-               [Header("参照")]
-        [SerializeField] private ChartEditorManager editorManager;
+    [Header("連携設定")]
+    [SerializeField] private ChartEditorManager editorManager;
+    [SerializeField] private Transform gridSpawnPoint;
+    [SerializeField] private Transform gridJudgePoint;
 
-        [Header("ガイドラインPrefab設定")]
-        [SerializeField] private GameObject gridLinePrefab; // 白線ガイドのPrefab (GridLineCon付き)
-        [SerializeField] private Transform spawnPoint;      // 生成開始位置 (レーン奥の中央)
-        [SerializeField] private Transform targetPoint;     // 判定ライン中央位置
+    [Header("拍線プレハブ設定（縦線｜のSprite / Quad等。空欄なら表示なし）")]
+    [SerializeField] private GameObject beatLinePrefab;
+    [SerializeField] private Color quarterBeatColor = new Color(1f, 1f, 1f, 0.7f);
+    [SerializeField] private Color eighthBeatColor = new Color(0.4f, 0.8f, 1f, 0.45f);
+    [SerializeField] private Color sixteenthBeatColor = new Color(1f, 0.9f, 0.3f, 0.25f);
 
-        [Header("グリッドスナップ設定")]
-        public bool isSnapEnabled = true; // スナップ機能のON/OFF
-        public bool isGridVisible = true; // グリッド線の表示/非表示
-        public int beatDivision = 4;      // 現在の拍分割数 (4, 8, 16, 32)
+    [Header("グリッド・スナップ設定")]
+    public bool isGridVisible = true;
+    public bool isSnapEnabled = true;
+    [Tooltip("1小節あたりの分割数 (4=4分, 8=8分, 16=16分, 32=32分)")]
+    public int beatDivision = 16;
+    [SerializeField] private float songOffsetSeconds = 0f;
 
-        [Header("ガイド線の色設定")]
-        [SerializeField] private Color colorQuarter = Color.white;       // 4分音符
-        [SerializeField] private Color colorEighth = Color.cyan;         // 8分音符
-        [SerializeField] private Color colorSixteenth = Color.yellow;    // 16分音符
-        [SerializeField] private Color colorThirtySecond = Color.magenta;// 32分音符
+    private List<GameObject> linePool = new List<GameObject>();
+    private readonly int[] availableDivisions = new int[] { 4, 8, 16, 32 };
 
-        private float lastSpawnedBeatTime = -1f;
-
-        private void Awake()
+    private void Awake()
+    {
+        if (editorManager == null)
         {
-            if (editorManager == null)
-            {
-                editorManager = GetComponent<ChartEditorManager>();
-            }
+            editorManager = GetComponent<ChartEditorManager>();
+        }
+    }
+
+    private void Update()
+    {
+        UpdateGridLines();
+    }
+
+    public void ResetGridState()
+    {
+        for (int i = 0; i < linePool.Count; i++)
+        {
+            if (linePool[i] != null) linePool[i].SetActive(false);
+        }
+    }
+
+    public void CycleDivision()
+    {
+        int currentIndex = System.Array.IndexOf(availableDivisions, beatDivision);
+        int nextIndex = (currentIndex + 1) % availableDivisions.Length;
+        beatDivision = availableDivisions[nextIndex];
+    }
+
+    /// <summary>
+    /// 入力時刻を最寄りの拍分割タイミングへ吸着(スナップ)させる
+    /// </summary>
+    public float SnapTime(float rawTime, float bpm)
+    {
+        if (bpm <= 0f || beatDivision <= 0) return rawTime;
+
+        float quarterDuration = 60f / bpm;
+        float stepDuration = quarterDuration * (4f / beatDivision);
+        float adjustedTime = rawTime - songOffsetSeconds;
+        float snapped = Mathf.Round(adjustedTime / stepDuration) * stepDuration + songOffsetSeconds;
+
+        return Mathf.Max(0f, snapped);
+    }
+
+    private void UpdateGridLines()
+    {
+        for (int i = 0; i < linePool.Count; i++)
+        {
+            if (linePool[i] != null) linePool[i].SetActive(false);
         }
 
-        private void Update()
+        if (!isGridVisible || beatLinePrefab == null || gridSpawnPoint == null || gridJudgePoint == null) return;
+        if (editorManager == null || !editorManager.IsAudioReady || AudioManager.Instance == null) return;
+
+        float bpm = editorManager.activeChartData != null ? editorManager.activeChartData.bpm : 120f;
+        if (bpm <= 0f) return;
+
+        float currentTime = AudioManager.Instance.GetCurrentTime();
+        float preSpawn = editorManager.PrespawnTime;
+
+        float quarterDuration = 60f / bpm;
+        float stepDuration = quarterDuration * (4f / beatDivision);
+        if (stepDuration <= 0.005f) return;
+
+        int startStep = Mathf.FloorToInt((currentTime - songOffsetSeconds) / stepDuration);
+        int endStep = Mathf.CeilToInt((currentTime + preSpawn - songOffsetSeconds) / stepDuration);
+
+        int poolIndex = 0;
+        for (int step = startStep; step <= endStep; step++)
         {
-            if (!isGridVisible || gridLinePrefab == null || AudioManager.Instance == null) return;
-            if (!AudioManager.Instance.IsBGMPlaying() || editorManager == null) return;
+            if (step < 0) continue;
 
-            float currentTime = AudioManager.Instance.GetCurrentTime();
-            float bpm = editorManager.activeChartData.bpm;
-            if (bpm <= 0) return;
+            float beatTime = step * stepDuration + songOffsetSeconds;
+            if (beatTime < currentTime - 0.1f || beatTime > currentTime + preSpawn) continue;
 
-            UpdateGridSpawning(currentTime, bpm);
+            GameObject lineObj = GetOrCreateLine(poolIndex++);
+            lineObj.SetActive(true);
+
+            float progress = 1f - ((beatTime - currentTime) / preSpawn);
+            lineObj.transform.position = Vector3.LerpUnclamped(gridSpawnPoint.position, gridJudgePoint.position, progress);
+
+            ApplyBeatColor(lineObj, step);
+        }
+    }
+
+    private void ApplyBeatColor(GameObject lineObj, int stepIndex)
+    {
+        int stepsPerQuarter = Mathf.Max(1, beatDivision / 4);
+        int stepsPerEighth = Mathf.Max(1, beatDivision / 8);
+
+        Color targetColor = sixteenthBeatColor;
+        if (stepIndex % stepsPerQuarter == 0)
+        {
+            targetColor = quarterBeatColor;
+        }
+        else if (stepIndex % stepsPerEighth == 0)
+        {
+            targetColor = eighthBeatColor;
         }
 
-        /// <summary>
-        /// 再生時間に合わせて未来の拍線を生成
-        /// </summary>
-        private void UpdateGridSpawning(float currentTime, float bpm)
+        if (lineObj.TryGetComponent<SpriteRenderer>(out var sr))
         {
-            float secondsPerBeat = 60.0f / bpm; // 1拍(4分音符)の長さ(秒)
-            float step = secondsPerBeat / (beatDivision / 4.0f); // 選択分割に応じた最小ステップ時間
-            float preSpawnTime = editorManager.PrespawnTime;
-
-            // preSpawnTime 先までの時間範囲で拍を計算
-            float horizonTime = currentTime + preSpawnTime;
-
-            // 最後に生成した拍の次の拍タイミングを算出
-            float startBeatTime = Mathf.Ceil(currentTime / step) * step;
-
-            for (float t = startBeatTime; t <= horizonTime; t += step)
-            {
-                if (t > lastSpawnedBeatTime)
-                {
-                    Color lineColor = GetColorForBeatTime(t, secondsPerBeat);
-                    SpawnGridLine(t, preSpawnTime, lineColor);
-                    lastSpawnedBeatTime = t;
-                }
-            }
+            sr.color = targetColor;
         }
-
-        /// <summary>
-        /// 白線オブジェクトのInstantiateおよび初期化
-        /// </summary>
-        private void SpawnGridLine(float beatTime, float preSpawnTime, Color lineColor)
+        else if (lineObj.TryGetComponent<Renderer>(out var rend))
         {
-            Vector3 sPos = spawnPoint != null ? spawnPoint.position : Vector3.zero;
-            Vector3 tPos = targetPoint != null ? targetPoint.position : Vector3.zero;
-
-            GameObject obj = Instantiate(gridLinePrefab, sPos, Quaternion.identity);
-            GridLineCon lineCon = obj.GetComponent<GridLineCon>();
-
-            if (lineCon != null)
-            {
-                lineCon.Init(beatTime, preSpawnTime, sPos, tPos, lineColor);
-            }
+            rend.material.color = targetColor;
         }
+    }
 
-        /// <summary>
-        /// 拍タイミングの性質（4分拍か、8分拍か等）に応じて色を判定
-        /// </summary>
-        private Color GetColorForBeatTime(float time, float secondsPerBeat)
+    private GameObject GetOrCreateLine(int index)
+    {
+        while (linePool.Count <= index)
         {
-            float beatPosition = time / secondsPerBeat;
-            float epsilon = 0.001f;
-
-            // 4分音符（整数の拍）
-            if (Mathf.Abs(beatPosition - Mathf.Round(beatPosition)) < epsilon)
-            {
-                return colorQuarter;
-            }
-
-            // 8分音符（0.5刻み）
-            if (Mathf.Abs((beatPosition * 2f) - Mathf.Round(beatPosition * 2f)) < epsilon)
-            {
-                return colorEighth;
-            }
-
-            // 16分音符（0.25刻み）
-            if (Mathf.Abs((beatPosition * 4f) - Mathf.Round(beatPosition * 4f)) < epsilon)
-            {
-                return colorSixteenth;
-            }
-
-            // 32分音符
-            return colorThirtySecond;
+            GameObject obj = Instantiate(beatLinePrefab, transform);
+            linePool.Add(obj);
         }
-
-        /// <summary>
-        /// 指定時間を現在の拍分割ルールに基づいてスナップした時間に変換
-        /// </summary>
-        public float SnapTime(float time, float bpm)
-        {
-            if (!isSnapEnabled || bpm <= 0) return time;
-
-            float secondsPerBeat = 60.0f / bpm;
-            float step = secondsPerBeat / (beatDivision / 4.0f);
-
-            float snapped = Mathf.Round(time / step) * step;
-            return Mathf.Max(0f, snapped);
-        }
-
-        /// <summary>
-        /// 拍分割数を順番に切り替える (4分 -> 8分 -> 16分 -> 32分 -> 4分)
-        /// </summary>
-        public void CycleDivision()
-        {
-            if (beatDivision == 4) beatDivision = 8;
-            else if (beatDivision == 8) beatDivision = 16;
-            else if (beatDivision == 16) beatDivision = 32;
-            else beatDivision = 4;
-
-            ResetGridState();
-        }
-
-        /// <summary>
-        /// タイムスキップや巻き戻し発生時にガイド線の生成履歴をリセット
-        /// </summary>
-        public void ResetGridState()
-        {
-            lastSpawnedBeatTime = -1f;
-        }
+        return linePool[index];
+    }
 }
